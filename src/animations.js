@@ -21,6 +21,8 @@ export function initAmbientScrollMotion(gsap, ScrollTrigger) {
 function setupTextReveals(gsap, ScrollTrigger) {
   gsap.utils.toArray('.reveal-text').forEach((element) => {
     const originalText = element.textContent.trim();
+    if (!originalText) return;
+
     element.setAttribute('aria-label', originalText);
     element.textContent = '';
 
@@ -89,6 +91,7 @@ function setupImageReveals(gsap, ScrollTrigger) {
       }
     );
 
+    if (!surface) return;
     gsap.fromTo(
       surface,
       {
