@@ -1,0 +1,165 @@
+{
+  "site": {
+    "title": "Dor Fellous",
+    "description": "A cinematic scroll-based portfolio prototype for Dor Fellous.",
+    "mediaOptions": [
+      "./public/media/placeholder-image.jpg",
+      "./public/media/placeholder-video.mp4"
+    ]
+  },
+  "sections": [
+    {
+      "id": "intro",
+      "label": "Intro",
+      "className": "intro-section",
+      "layout": "intro-grid",
+      "blocks": [
+        {
+          "id": "intro-kicker",
+          "type": "text",
+          "title": "DOR FELLOUS / LIVING INTERFACE",
+          "body": "",
+          "size": "eyebrow",
+          "alignment": "left"
+        },
+        {
+          "id": "intro-title",
+          "type": "text",
+          "title": "Portfolio material forming through scroll.",
+          "body": "",
+          "size": "hero",
+          "alignment": "left"
+        },
+        {
+          "id": "intro-copy",
+          "type": "text",
+          "title": "",
+          "body": "A dark cinematic prototype where typography, images, and motion behave like matter becoming readable.",
+          "size": "body",
+          "alignment": "left"
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "label": "About",
+      "className": "split-section",
+      "layout": "split-layout",
+      "blocks": [
+        {
+          "id": "about-kicker",
+          "type": "text",
+          "title": "ABOUT",
+          "body": "",
+          "size": "eyebrow",
+          "alignment": "left"
+        },
+        {
+          "id": "about-title",
+          "type": "text",
+          "title": "Soft fragments gather into a personal archive.",
+          "body": "",
+          "size": "title",
+          "alignment": "left"
+        },
+        {
+          "id": "about-copy",
+          "type": "text",
+          "title": "",
+          "body": "This first version holds placeholder writing only. The structure is ready for biography, projects, products, press, and contact material once the motion language feels right.",
+          "size": "body",
+          "alignment": "left"
+        }
+      ]
+    },
+    {
+      "id": "image-reveal",
+      "label": "Image Reveal",
+      "className": "image-section",
+      "layout": "image-layout",
+      "blocks": [
+        {
+          "id": "image-kicker",
+          "type": "text",
+          "title": "PROJECT SIGNAL",
+          "body": "",
+          "size": "eyebrow",
+          "alignment": "left"
+        },
+        {
+          "id": "image-title",
+          "type": "text",
+          "title": "Images arrive broken, then settle into focus.",
+          "body": "",
+          "size": "title",
+          "alignment": "left"
+        },
+        {
+          "id": "project-image",
+          "type": "image",
+          "src": "",
+          "alt": "Abstract placeholder image for project work",
+          "caption": "Placeholder visual surface / replace with real project media.",
+          "size": "large",
+          "alignment": "right"
+        }
+      ]
+    },
+    {
+      "id": "video-scrub",
+      "label": "Video Scrub",
+      "className": "video-section",
+      "layout": "video-layout",
+      "blocks": [
+        {
+          "id": "video-kicker",
+          "type": "text",
+          "title": "SCROLL VIDEO",
+          "body": "",
+          "size": "eyebrow",
+          "alignment": "left"
+        },
+        {
+          "id": "video-title",
+          "type": "text",
+          "title": "Scroll controls time. Stop scrolling and the frame holds.",
+          "body": "",
+          "size": "title",
+          "alignment": "left"
+        },
+        {
+          "id": "video-placeholder",
+          "type": "video",
+          "src": "",
+          "caption": "video placeholder / scroll scrub",
+          "behavior": "scroll-scrub",
+          "alignment": "right"
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "label": "Next",
+      "className": "closing-section",
+      "layout": "closing-layout",
+      "blocks": [
+        {
+          "id": "next-kicker",
+          "type": "text",
+          "title": "NEXT PASS",
+          "body": "",
+          "size": "eyebrow",
+          "alignment": "left"
+        },
+        {
+          "id": "next-title",
+          "type": "text",
+          "title": "Replace placeholders with Dor Fellous work, then tune the motion.",
+          "body": "",
+          "size": "title",
+          "alignment": "left"
+        }
+      ]
+    }
+  ]
+}
