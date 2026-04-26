@@ -3,6 +3,7 @@
     "title": "Dor Fellous",
     "description": "A cinematic scroll-based portfolio prototype for Dor Fellous.",
     "mediaOptions": [
+      "./public/media/intro-portrait.svg",
       "./public/media/placeholder-image.jpg",
       "./public/media/placeholder-video.mp4"
     ]
@@ -31,39 +32,22 @@
           "alignment": "left"
         },
         {
+          "id": "intro-portrait",
+          "type": "image",
+          "src": "./public/media/intro-portrait.svg",
+          "alt": "Dor Fellous portrait wearing sculptural glasses and wearable objects",
+          "caption": "",
+          "size": "large",
+          "alignment": "center",
+          "motion": "intro-center"
+        },
+        {
           "id": "intro-copy",
           "type": "text",
           "title": "",
           "body": "I create wearable objects and visual systems at the intersection of digital tools, physical materials, and experimental craft.\nMy work connects 3D, AI, textiles, fabrication, and body-based design into sculptural pieces that move between fashion, art, and technology.",
           "size": "body",
           "alignment": "left"
-        },
-        {
-          "id": "image-1777220755544",
-          "type": "image",
-          "src": "",
-          "alt": "",
-          "caption": "New image block",
-          "size": "large",
-          "alignment": "right"
-        },
-        {
-          "id": "image-1777220757110",
-          "type": "image",
-          "src": "",
-          "alt": "",
-          "caption": "New image block",
-          "size": "large",
-          "alignment": "right"
-        },
-        {
-          "id": "image-1777220757260",
-          "type": "image",
-          "src": "",
-          "alt": "",
-          "caption": "New image block",
-          "size": "large",
-          "alignment": "right"
         },
         {
           "id": "intro-video",
