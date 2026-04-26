@@ -1,311 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A Palmer-inspired minimal portfolio and agency template for GitHub Pages."
+      content="Interactive 3D architectural portfolio entrance for Dor Fellous."
     />
-    <title>Akihiko - Minimal Portfolio Template</title>
-    <link rel="preconnect" href="https://images.unsplash.com" />
-    <link rel="stylesheet" href="styles.css" />
+    <title>Dor Fellous Interactive Portfolio</title>
   </head>
   <body>
-    <header class="site-header" id="top">
-      <a class="brand" href="#top">Palmer<span>&reg;</span></a>
-      <nav class="quick-links" aria-label="Primary navigation">
-        <p>Quick Links</p>
-        <div>
-          <a href="#top">Home,</a>
-          <a href="#gallery">Gallery,</a>
-          <a href="#work">Work,</a>
-          <a href="#contact">Contact</a>
-        </div>
-      </nav>
-    </header>
+    <div id="app">
+      <canvas id="scene-canvas" aria-label="Interactive 3D portfolio entrance"></canvas>
 
-    <main>
-      <section class="hero section-rule" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <h1 id="hero-title">
-            Pattern Dimensions and Moments that Connect and Leave a Bold
-            <span>イメージ.</span>
-          </h1>
-        </div>
-        <div class="hero-media media-frame">
-          <img
-            src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1400&q=85"
-            alt="Editorial fashion silhouettes"
-          />
-          <a class="social-dot" href="https://x.com" aria-label="Social profile">X</a>
-        </div>
-        <div class="mega-word" aria-label="Akihiko">Akihiko<span>TM</span></div>
-        <div class="section-meta">
-          <p>&copy; Curated Interfaces ビジュアル</p>
-          <p>Digital Designer</p>
+      <div id="desktop-start" class="desktop-start">
+        <button id="enter-button" type="button">Enter</button>
+      </div>
+
+      <div id="transition-layer" class="transition-layer" aria-hidden="true"></div>
+
+      <section id="section-page" class="section-page" aria-live="polite" hidden>
+        <button id="back-button" class="back-button" type="button">Back to entrance</button>
+        <div class="section-content">
+          <p id="section-kicker" class="section-kicker">Dor Fellous</p>
+          <h1 id="section-title"></h1>
+          <p id="section-copy" class="section-copy"></p>
         </div>
       </section>
 
-      <section class="intro section-rule" id="gallery" aria-label="Introduction">
-        <div class="portrait-stack">
-          <img
-            src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=900&q=85"
-            alt="Minimal fashion portrait"
-          />
-        </div>
-        <div class="intro-text">
-          <p>
-            13+ years&trade; of digital form, sharp interactions, and relentless
-            creative discipline and effort.
-          </p>
-          <a class="pill-link" href="#contact">Contact</a>
-        </div>
-      </section>
+      <aside id="mobile-fallback" class="mobile-fallback" hidden>
+        <p>This interactive entrance is best experienced on desktop.</p>
+        <nav id="mobile-section-links" aria-label="Portfolio sections"></nav>
+      </aside>
+    </div>
 
-      <section class="works section-rule" id="work" aria-labelledby="works-title">
-        <div class="section-meta">
-          <p>&copy; Featured Projects</p>
-          <p>Creative Development</p>
-        </div>
-        <div class="section-heading">
-          <h2 id="works-title">Featured Works&copy;</h2>
-          <p>
-            Every project blends design and development, shaping bold interactive
-            ideas into sleek digital realities with speed, clarity, and intent.
-          </p>
-          <a class="text-link" href="#work">See Works</a>
-        </div>
-
-        <div class="project-list">
-          <article class="project-row">
-            <div class="project-images">
-              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85" alt="Rocks and architecture" />
-              <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=85" alt="Editorial male portrait" />
-            </div>
-            <p>Branding</p>
-            <h3>Sonder Goods</h3>
-            <span>(01)</span>
-          </article>
-          <article class="project-row">
-            <div class="project-images">
-              <img src="https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=85" alt="Black and white portrait" />
-              <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=85" alt="Side pose fashion portrait" />
-            </div>
-            <p>Web Design</p>
-            <h3>Halo Wear</h3>
-            <span>(02)</span>
-          </article>
-          <article class="project-row">
-            <div class="project-images">
-              <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=900&q=85" alt="Poolside exterior" />
-              <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=85" alt="Editorial woman portrait" />
-            </div>
-            <p>Creative Direction</p>
-            <h3>Lucent Lab</h3>
-            <span>(03)</span>
-          </article>
-          <article class="project-row">
-            <div class="project-images">
-              <img src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=85" alt="Fashion profile" />
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=85" alt="Seated portrait" />
-            </div>
-            <p>Identity Design</p>
-            <h3>Arc & Bloom</h3>
-            <span>(04)</span>
-          </article>
-        </div>
-      </section>
-
-      <section class="services section-rule" aria-labelledby="services-title">
-        <div class="section-meta">
-          <p>&copy; Capabilities サービス内容</p>
-          <p>Digital Execution</p>
-        </div>
-        <div class="split-title">
-          <h2 id="services-title">Services</h2>
-          <span>(6)</span>
-        </div>
-        <div class="service-grid">
-          <p>Precise</p>
-          <p>Structured</p>
-          <p>Focused</p>
-          <article>
-            <h3>Visual Language</h3>
-            <p>Art direction, mood systems, and visual decisions with clarity.</p>
-          </article>
-          <article>
-            <h3>Brand Identity</h3>
-            <p>Consistent brand systems that feel distinct, calm, and ownable.</p>
-          </article>
-          <article>
-            <h3>Motion Direction</h3>
-            <p>Interaction rhythm and subtle animation for premium experiences.</p>
-          </article>
-          <article>
-            <h3>Framer Sites</h3>
-            <p>Fast websites rebuilt as clean, responsive code for real ownership.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="profile section-rule" aria-labelledby="profile-title">
-        <div class="section-meta">
-          <p>&copy; Personal Profile プロフィール</p>
-          <p>Visual Thinker</p>
-        </div>
-        <div class="profile-grid">
-          <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=85" alt="Back pose portrait" />
-          <img src="https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?auto=format&fit=crop&w=900&q=85" alt="Studio portrait" />
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=85" alt="Portrait in warm light" />
-        </div>
-        <div class="profile-copy">
-          <h2 id="profile-title">
-            Blending design and code with functional clarity and creative
-            precision.
-          </h2>
-          <p>
-            We bridge creative direction with real-world execution, combining
-            design and development into one workflow to deliver thoughtful,
-            fast digital experiences.
-          </p>
-        </div>
-      </section>
-
-      <section class="experience section-rule" aria-labelledby="experience-title">
-        <div class="section-meta">
-          <p>&copy; Experience エクスペリエンス</p>
-          <p>Digital Craft</p>
-        </div>
-        <h2 id="experience-title" class="large-heading">Pick Plans.</h2>
-        <div class="timeline">
-          <p>Global</p>
-          <p>Creative Collabs</p>
-          <article><span>Clavmen Studio</span><span>2022 - Present</span><span>Art Director & Designer</span><span>Tokyo</span></article>
-          <article><span>Modular Eight</span><span>2020 - 2022</span><span>Senior Developer</span><span>Osaka</span></article>
-          <article><span>Haus of Signal</span><span>2018 - 2020</span><span>Creative Technologist</span><span>Berlin</span></article>
-          <article><span>Studio Orbit</span><span>2016 - 2018</span><span>UI/UX Designer</span><span>Dallas</span></article>
-        </div>
-      </section>
-
-      <section class="testimonials section-rule" aria-labelledby="testimonial-title">
-        <div class="section-meta">
-          <p>&copy; Testimonials レビュー</p>
-          <p>Real Feedback</p>
-        </div>
-        <div class="section-heading">
-          <h2 id="testimonial-title">Testimonial&copy; - Reviews</h2>
-          <a class="text-link" href="#contact">Get in touch</a>
-        </div>
-        <div class="testimonial-grid">
-          <figure>
-            <blockquote>
-              "Every layer felt crafted and intentional. The site looked beautiful,
-              performed well, and the process stayed smooth."
-            </blockquote>
-            <figcaption>
-              <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=300&q=80" alt="Lisa Kuroda" />
-              <span>Lisa Kuroda<br />Founder, Studio Analog</span>
-            </figcaption>
-          </figure>
-          <figure>
-            <blockquote>
-              "The work brings logic, sharpness, and confidence to every design
-              decision, from first sketch to final build."
-            </blockquote>
-            <figcaption>
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80" alt="Daniel Reyes" />
-              <span>Daniel Reyes<br />Director, Framehaus</span>
-            </figcaption>
-          </figure>
-          <figure>
-            <blockquote>
-              "A rare balance of creativity and discipline. Fast, clear, and
-              incredibly precise without losing the feeling."
-            </blockquote>
-            <figcaption>
-              <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&w=300&q=80" alt="Mei Tanaka" />
-              <span>Mei Tanaka<br />UX Designer, Nuro</span>
-            </figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section class="awards section-rule" aria-labelledby="awards-title">
-        <div class="section-meta">
-          <p>&copy; Awards アワード</p>
-          <p>Selected Honors</p>
-        </div>
-        <div class="split-title">
-          <h2 id="awards-title">Awards</h2>
-          <span>(3)</span>
-        </div>
-        <div class="award-list">
-          <p><span>27x</span>Awwwards</p>
-          <p><span>14x</span>FWA</p>
-          <p><span>09x</span>CSSDA</p>
-          <p><span>08x</span>Dribbble</p>
-        </div>
-      </section>
-
-      <section class="pricing section-rule" aria-labelledby="pricing-title">
-        <div class="section-meta">
-          <p>&copy; Project Pricing プラン</p>
-          <p>Custom Quotes</p>
-        </div>
-        <h2 id="pricing-title" class="large-heading">Pick Plans.</h2>
-        <div class="pricing-grid">
-          <article class="price-card">
-            <h3>$99</h3>
-            <p>/Month</p>
-            <h4>Starter Plan</h4>
-            <ul>
-              <li>One-page site</li>
-              <li>Custom visuals</li>
-              <li>Mobile-first build</li>
-              <li>SEO-ready structure</li>
-            </ul>
-          </article>
-          <article class="price-card featured">
-            <h3>$299</h3>
-            <p>/Month</p>
-            <h4>Studio Plan</h4>
-            <ul>
-              <li>Multi-section website</li>
-              <li>CMS-ready project grid</li>
-              <li>Motion details</li>
-              <li>Launch support</li>
-            </ul>
-          </article>
-          <article class="price-card">
-            <h3>Custom</h3>
-            <p>/Project</p>
-            <h4>Partner Plan</h4>
-            <ul>
-              <li>Creative direction</li>
-              <li>Brand system</li>
-              <li>Advanced interactions</li>
-              <li>Long-term support</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <section class="contact" id="contact" aria-labelledby="contact-title">
-        <div class="section-meta">
-          <p>&copy; Contact 連絡先</p>
-          <p>Start a Project</p>
-        </div>
-        <h2 id="contact-title">Let&apos;s build something precise.</h2>
-        <a class="contact-button" href="mailto:hello@example.com">hello@example.com</a>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <a href="#top">Palmer&reg;</a>
-      <p>Minimal portfolio template for GitHub Pages.</p>
-    </footer>
-
-    <script src="script.js"></script>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
