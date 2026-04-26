@@ -1,27 +1,65 @@
 export function initScrollVideo(gsap, ScrollTrigger) {
-  const container = document.querySelector('[data-scroll-video]');
-  if (!container) return;
-
-  const canvas = container.querySelector('canvas');
-  const context = canvas.getContext('2d');
-  const state = { progress: 0 };
-
-  drawFrame(context, canvas, state.progress);
-
-  gsap.to(state, {
-    progress: 1,
-    ease: 'none',
-    onUpdate: () => drawFrame(context, canvas, state.progress),
-    scrollTrigger: {
-      trigger: container,
-      start: 'top 82%',
-      end: 'bottom 12%',
-      scrub: true
-    }
+  document.querySelectorAll('[data-scroll-video]').forEach((container) => {
+    initOneScrollVideo(container, gsap, ScrollTrigger);
   });
 }
 
-function drawFrame(context, canvas, progress) {
+function initOneScrollVideo(container, gsap, ScrollTrigger) {
+  const canvas = container.querySelector('canvas');
+  if (!canvas) return;
+
+  const context = canvas.getContext('2d');
+  const state = { progress: 0 };
+  const src = container.dataset.src;
+
+  if (src) {
+    const video = document.createElement('video');
+    video.src = src;
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.style.display = 'none';
+    container.appendChild(video);
+
+    video.addEventListener('loadedmetadata', () => {
+      drawVideoFrame(context, canvas, video);
+      gsap.to(state, {
+        progress: 1,
+        ease: 'none',
+        onUpdate: () => {
+          video.currentTime = state.progress * Math.max(video.duration, 0.01);
+          drawVideoFrame(context, canvas, video);
+        },
+        scrollTrigger: getVideoTrigger(container)
+      });
+    });
+    return;
+  }
+
+  drawPlaceholderFrame(context, canvas, state.progress);
+  gsap.to(state, {
+    progress: 1,
+    ease: 'none',
+    onUpdate: () => drawPlaceholderFrame(context, canvas, state.progress),
+    scrollTrigger: getVideoTrigger(container)
+  });
+}
+
+function getVideoTrigger(container) {
+  return {
+    trigger: container,
+    start: 'top 82%',
+    end: 'bottom 12%',
+    scrub: true
+  };
+}
+
+function drawVideoFrame(context, canvas, video) {
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+}
+
+function drawPlaceholderFrame(context, canvas, progress) {
   const width = canvas.width;
   const height = canvas.height;
   context.clearRect(0, 0, width, height);
