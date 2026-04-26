@@ -7,6 +7,9 @@ export function initEditor({ content, app, onPreview }) {
   editorRoot.hidden = false;
 
   const state = structuredClone(content);
+  state.site = state.site || {};
+  state.site.mediaOptions = state.site.mediaOptions || ['./public/media/placeholder-image.jpg', './public/media/placeholder-video.mp4'];
+
   const dragState = { sectionId: null, blockId: null };
 
   editorRoot.innerHTML = `
@@ -23,7 +26,7 @@ export function initEditor({ content, app, onPreview }) {
         <button type="button" data-action="export-copy">Copy JSON</button>
         <button type="button" data-action="export-download">Download JSON</button>
       </div>
-      <p class="editor-note">Drag blocks to reorder them. Use the section dropdown to move a block to another section. Save exported JSON back into public/content/site-content.json.</p>
+      <p class="editor-note">Drag blocks to reorder them. Use the section dropdown to move a block to another section. Add media files manually to public/media, then type or select their paths here.</p>
       <div class="editor-sections"></div>
       <textarea class="editor-export" readonly aria-label="Exported JSON"></textarea>
     </aside>
@@ -33,16 +36,17 @@ export function initEditor({ content, app, onPreview }) {
   const exportField = editorRoot.querySelector('.editor-export');
 
   editorRoot.addEventListener('click', (event) => {
-    const action = event.target.dataset.action;
-    if (!action) return;
+    const actionTarget = event.target.closest('[data-action]');
+    if (!actionTarget) return;
 
+    const action = actionTarget.dataset.action;
     if (action === 'preview') preview();
     if (action === 'export-copy') copyJson(exportField, state);
     if (action === 'export-download') downloadJson(state);
-    if (action === 'add-text') addBlock(event.target.dataset.sectionId, 'text');
-    if (action === 'add-image') addBlock(event.target.dataset.sectionId, 'image');
-    if (action === 'add-video') addBlock(event.target.dataset.sectionId, 'video');
-    if (action === 'remove-block') removeBlock(event.target.dataset.sectionId, event.target.dataset.blockId);
+    if (action === 'add-text') addBlock(actionTarget.dataset.sectionId, 'text');
+    if (action === 'add-image') addBlock(actionTarget.dataset.sectionId, 'image');
+    if (action === 'add-video') addBlock(actionTarget.dataset.sectionId, 'video');
+    if (action === 'remove-block') removeBlock(actionTarget.dataset.sectionId, actionTarget.dataset.blockId);
   });
 
   editorRoot.addEventListener('input', (event) => {
@@ -134,7 +138,7 @@ export function initEditor({ content, app, onPreview }) {
   function renderFields(sectionId, block) {
     if (block.type === 'image') {
       return `
-        ${field('src', 'Media path', block.src || '', sectionId, block.id, 'input', 'Example: ./public/media/image.jpg')}
+        ${mediaField('src', 'Media path', block.src || '', sectionId, block.id, 'Example: ./public/media/image.jpg')}
         ${field('alt', 'Alt text', block.alt || '', sectionId, block.id)}
         ${field('caption', 'Caption', block.caption || '', sectionId, block.id)}
         ${selectField('size', 'Size', block.size || 'large', ['small', 'medium', 'large'], sectionId, block.id)}
@@ -144,7 +148,7 @@ export function initEditor({ content, app, onPreview }) {
 
     if (block.type === 'video') {
       return `
-        ${field('src', 'Media path', block.src || '', sectionId, block.id, 'input', 'Optional: ./public/media/video.mp4')}
+        ${mediaField('src', 'Media path', block.src || '', sectionId, block.id, 'Optional: ./public/media/video.mp4')}
         ${field('caption', 'Caption', block.caption || '', sectionId, block.id)}
         ${selectField('behavior', 'Behavior', block.behavior || 'scroll-scrub', ['scroll-scrub', 'static'], sectionId, block.id)}
         ${selectField('alignment', 'Alignment', block.alignment || 'right', ['left', 'center', 'right'], sectionId, block.id)}
@@ -166,6 +170,19 @@ export function initEditor({ content, app, onPreview }) {
       <label class="editor-field">
         <span>${label}</span>
         ${element === 'textarea' ? `<textarea ${attrs}>${escapedValue}</textarea>` : `<input value="${escapedValue}" ${attrs} />`}
+      </label>
+    `;
+  }
+
+  function mediaField(name, label, value, sectionId, blockId, placeholder = '') {
+    const listId = `media-options-${blockId}-${name}`;
+    return `
+      <label class="editor-field">
+        <span>${label}</span>
+        <input value="${escapeHtml(value)}" data-field="${name}" data-section-id="${sectionId}" data-block-id="${blockId}" list="${listId}" placeholder="${placeholder}" />
+        <datalist id="${listId}">
+          ${state.site.mediaOptions.map((option) => `<option value="${escapeHtml(option)}"></option>`).join('')}
+        </datalist>
       </label>
     `;
   }
@@ -202,14 +219,16 @@ export function initEditor({ content, app, onPreview }) {
     dragState.sectionId = null;
     dragState.blockId = null;
     renderEditor();
+    preview();
   }
 
   function addBlock(sectionId, type) {
     const section = state.sections.find((candidate) => candidate.id === sectionId);
     if (!section) return;
 
-    section.blocks.push(createBlock(type));
+    section.blocks.push(createBlock(type, section));
     renderEditor();
+    preview();
   }
 
   function removeBlock(sectionId, blockId) {
@@ -217,6 +236,7 @@ export function initEditor({ content, app, onPreview }) {
     if (!section) return;
     section.blocks = section.blocks.filter((block) => block.id !== blockId);
     renderEditor();
+    preview();
   }
 
   function moveBlockToSection(fromSectionId, blockId, toSectionId) {
@@ -230,15 +250,31 @@ export function initEditor({ content, app, onPreview }) {
     const [block] = fromSection.blocks.splice(blockIndex, 1);
     toSection.blocks.push(block);
     renderEditor();
+    preview();
   }
 
-  function createBlock(type) {
-    const id = `${type}-${Date.now()}`;
+  function createBlock(type, section) {
+    const id = `${type}-${makeId()}`;
     if (type === 'image') {
-      return { id, type, src: '', alt: '', caption: 'New image block', size: 'large', alignment: 'right' };
+      return {
+        id,
+        type,
+        src: '',
+        alt: `${section.label || section.id} image`,
+        caption: 'New image block / choose media from public/media',
+        size: 'large',
+        alignment: 'right'
+      };
     }
     if (type === 'video') {
-      return { id, type, src: '', caption: 'New video block', behavior: 'scroll-scrub', alignment: 'right' };
+      return {
+        id,
+        type,
+        src: '',
+        caption: 'New video block / choose media from public/media',
+        behavior: 'scroll-scrub',
+        alignment: 'right'
+      };
     }
     return { id, type: 'text', title: 'New text block', body: '', size: 'body', alignment: 'left' };
   }
@@ -274,6 +310,11 @@ function downloadJson(state) {
   link.download = 'site-content.json';
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+function makeId() {
+  if (crypto?.randomUUID) return crypto.randomUUID().slice(0, 8);
+  return `${Date.now()}-${Math.round(Math.random() * 10000)}`;
 }
 
 function escapeHtml(value) {
