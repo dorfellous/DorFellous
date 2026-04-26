@@ -30,11 +30,16 @@ export function createNavigation({
 
   function onPointerDown(event) {
     if (transition.active || sectionPage.hidden === false) return;
-    const sectionId = getClickedSectionId(event);
+    const sectionId = getPointedSectionId(event);
     if (sectionId) flyIntoSection(sectionId);
   }
 
-  function getClickedSectionId(event) {
+  function onPointerMove(event) {
+    if (document.pointerLockElement === canvas || transition.active || sectionPage.hidden === false) return;
+    canvas.style.cursor = getPointedSectionId(event) ? 'pointer' : 'crosshair';
+  }
+
+  function getPointedSectionId(event) {
     const rect = canvas.getBoundingClientRect();
     const lockedToCanvas = document.pointerLockElement === canvas;
 
@@ -47,7 +52,9 @@ export function createNavigation({
   }
 
   function flyIntoSection(sectionId) {
-    const target = buildingTargets.find((mesh) => mesh.userData.sectionId === sectionId);
+    const target =
+      buildingTargets.find((mesh) => mesh.userData.sectionId === sectionId && mesh.userData.isBuilding) ||
+      buildingTargets.find((mesh) => mesh.userData.sectionId === sectionId);
     if (!target) return;
 
     target.getWorldPosition(transition.toPosition);
@@ -71,6 +78,7 @@ export function createNavigation({
     transition.sectionId = sectionId;
     transition.elapsed = 0;
     transition.active = true;
+    canvas.style.cursor = 'crosshair';
     controls.setEnabled(false);
     transitionLayer.classList.add('is-travelling');
   }
@@ -130,6 +138,7 @@ export function createNavigation({
   }
 
   canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointermove', onPointerMove);
   backButton.addEventListener('click', backToEntrance);
   populateMobileLinks();
 
