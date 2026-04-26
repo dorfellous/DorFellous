@@ -1,11 +1,11 @@
-const CONTENT_URL = './public/content/site-content.json';
+const CONTENT_URLS = ['./content/site-content.json', './public/content/site-content.json'];
 
 export async function loadSiteContent() {
-  const response = await fetch(CONTENT_URL, { cache: 'no-cache' });
-  if (!response.ok) {
-    throw new Error(`Could not load ${CONTENT_URL}`);
+  for (const url of CONTENT_URLS) {
+    const response = await fetch(url, { cache: 'no-cache' });
+    if (response.ok) return response.json();
   }
-  return response.json();
+  throw new Error(`Could not load content from ${CONTENT_URLS.join(' or ')}`);
 }
 
 export function renderSiteContent(content, app = document.querySelector('#app')) {
@@ -110,6 +110,8 @@ function getTextClass(size) {
 
 export function normalizeMediaPath(src) {
   if (!src) return '';
-  if (src.startsWith('http') || src.startsWith('./') || src.startsWith('/')) return src;
+  if (src.startsWith('http') || src.startsWith('/')) return src;
+  if (src.startsWith('./public/') || src.startsWith('./media/') || src.startsWith('./content/')) return src;
+  if (src.startsWith('./')) return src;
   return `./public/media/${src}`;
 }
