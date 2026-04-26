@@ -1,6 +1,7 @@
 export function initScrollReveals(gsap, ScrollTrigger) {
   setupTextReveals(gsap, ScrollTrigger);
   setupImageReveals(gsap, ScrollTrigger);
+  setupIntroPortraitMotion(gsap, ScrollTrigger);
 }
 
 export function initAmbientScrollMotion(gsap, ScrollTrigger) {
@@ -109,4 +110,50 @@ function setupImageReveals(gsap, ScrollTrigger) {
       }
     );
   });
+}
+
+function setupIntroPortraitMotion(gsap, ScrollTrigger) {
+  const intro = document.querySelector('[data-section="intro"]');
+  const portrait = document.querySelector('[data-motion="intro-center"]');
+  if (!intro || !portrait) return;
+
+  const introText = intro.querySelectorAll('.reveal-text');
+
+  // This is the first custom intro choreography: edit the values here to tune
+  // how the opening portrait and text travel together through the first scroll.
+  const timeline = gsap.timeline({
+    scrollTrigger: {
+      trigger: intro,
+      start: 'top top',
+      end: 'bottom top',
+      scrub: true
+    }
+  });
+
+  timeline.fromTo(
+    portrait,
+    {
+      xPercent: -18,
+      y: 120,
+      scale: 0.78,
+      rotate: -1.5
+    },
+    {
+      xPercent: 0,
+      y: 0,
+      scale: 1,
+      rotate: 0,
+      ease: 'none'
+    },
+    0
+  );
+
+  timeline.to(
+    introText,
+    {
+      y: -70,
+      ease: 'none'
+    },
+    0
+  );
 }
