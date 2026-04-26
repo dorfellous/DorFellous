@@ -1,4 +1,3 @@
-import './style.css';
 import * as THREE from 'three';
 import { createPortfolioScene } from './scene.js';
 import { createFirstPersonControls } from './controls.js';
