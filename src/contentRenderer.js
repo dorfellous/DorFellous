@@ -43,16 +43,18 @@ export function renderBlock(block) {
 function renderTextBlock(block) {
   const tag = getTextTag(block.size);
   const element = document.createElement(tag);
-  element.className = `content-block reveal-text align-${block.alignment || 'left'} ${getTextClass(block.size)}`;
+  element.className = `content-block reveal-text align-${block.alignment || 'left'} ${getTextClass(block.size)} ${getMotionClass(block)}`.trim();
   element.dataset.blockId = block.id;
+  applyMotionData(element, block);
   element.textContent = block.title || block.body || '';
   return element;
 }
 
 function renderImageBlock(block) {
   const figure = document.createElement('figure');
-  figure.className = `content-block reveal-image media-${block.size || 'large'} align-${block.alignment || 'right'}`;
+  figure.className = `content-block reveal-image media-${block.size || 'large'} align-${block.alignment || 'right'} ${getMotionClass(block)}`.trim();
   figure.dataset.blockId = block.id;
+  applyMotionData(figure, block);
   figure.setAttribute('aria-label', block.alt || block.caption || 'Portfolio image');
 
   const surface = document.createElement('div');
@@ -75,11 +77,12 @@ function renderImageBlock(block) {
 
 function renderVideoBlock(block) {
   const wrapper = document.createElement('div');
-  wrapper.className = `content-block scrub-video align-${block.alignment || 'right'}`;
+  wrapper.className = `content-block scrub-video align-${block.alignment || 'right'} ${getMotionClass(block)}`.trim();
   wrapper.dataset.blockId = block.id;
   wrapper.dataset.scrollVideo = '';
   wrapper.dataset.src = block.src ? normalizeMediaPath(block.src) : '';
   wrapper.dataset.behavior = block.behavior || 'scroll-scrub';
+  applyMotionData(wrapper, block);
   wrapper.setAttribute('aria-label', block.caption || 'Scroll-controlled video');
 
   const canvas = document.createElement('canvas');
@@ -108,9 +111,17 @@ function getTextClass(size) {
   return 'body-copy';
 }
 
+function getMotionClass(block) {
+  return block.motion ? `motion-${block.motion}` : '';
+}
+
+function applyMotionData(element, block) {
+  if (block.motion) element.dataset.motion = block.motion;
+}
+
 export function normalizeMediaPath(src) {
   if (!src) return '';
-  if (src.startsWith('http') || src.startsWith('/')) return src;
+  if (src.startsWith('http') || src.startsWith('/') || src.startsWith('data:')) return src;
   if (src.startsWith('./public/') || src.startsWith('./media/') || src.startsWith('./content/')) return src;
   if (src.startsWith('./')) return src;
   return `./public/media/${src}`;
