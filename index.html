@@ -5,42 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Interactive 3D architectural portfolio entrance for Dor Fellous."
+      content="A cinematic scroll-based portfolio prototype for Dor Fellous."
     />
-    <title>Dor Fellous Interactive Portfolio</title>
+    <title>Dor Fellous | Scroll Portfolio Prototype</title>
     <link rel="stylesheet" href="./src/style.css" />
     <script type="importmap">
       {
         "imports": {
-          "three": "https://esm.sh/three@0.165.0"
+          "gsap": "https://esm.sh/gsap@3.12.5",
+          "gsap/ScrollTrigger": "https://esm.sh/gsap@3.12.5/ScrollTrigger"
         }
       }
     </script>
   </head>
   <body>
-    <div id="app">
-      <canvas id="scene-canvas" aria-label="Interactive 3D portfolio entrance"></canvas>
-
-      <div id="desktop-start" class="desktop-start">
-        <button id="enter-button" type="button">Enter</button>
-      </div>
-
-      <div id="transition-layer" class="transition-layer" aria-hidden="true"></div>
-
-      <section id="section-page" class="section-page" aria-live="polite" hidden>
-        <button id="back-button" class="back-button" type="button">Back to entrance</button>
-        <div class="section-content">
-          <p id="section-kicker" class="section-kicker">Dor Fellous</p>
-          <h1 id="section-title"></h1>
-          <p id="section-copy" class="section-copy"></p>
+    <div class="grain" aria-hidden="true"></div>
+    <main id="app" class="site-shell">
+      <section class="section intro-section" data-section="intro">
+        <div class="section-inner intro-grid">
+          <p class="eyebrow reveal-text">DOR FELLOUS / LIVING INTERFACE</p>
+          <h1 class="hero-title reveal-text">Portfolio material forming through scroll.</h1>
+          <p class="intro-copy reveal-text">
+            A dark cinematic prototype where typography, images, and motion behave like matter becoming readable.
+          </p>
         </div>
       </section>
 
-      <aside id="mobile-fallback" class="mobile-fallback" hidden>
-        <p>This interactive entrance is best experienced on desktop.</p>
-        <nav id="mobile-section-links" aria-label="Portfolio sections"></nav>
-      </aside>
-    </div>
+      <section class="section split-section" data-section="about">
+        <div class="section-inner split-layout">
+          <div>
+            <p class="eyebrow reveal-text">ABOUT</p>
+            <h2 class="section-title reveal-text">Soft fragments gather into a personal archive.</h2>
+          </div>
+          <p class="body-copy reveal-text">
+            This first version holds placeholder writing only. The structure is ready for biography, projects, products, press, and contact material once the motion language feels right.
+          </p>
+        </div>
+      </section>
+
+      <section class="section image-section" data-section="image-reveal">
+        <div class="section-inner image-layout">
+          <div class="image-copy">
+            <p class="eyebrow reveal-text">PROJECT SIGNAL</p>
+            <h2 class="section-title reveal-text">Images arrive broken, then settle into focus.</h2>
+          </div>
+          <figure class="reveal-image" aria-label="Abstract placeholder image for project work">
+            <div class="image-surface"></div>
+            <figcaption>Placeholder visual surface / replace with real project media.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section video-section" data-section="video-scrub">
+        <div class="section-inner video-layout">
+          <div class="video-copy">
+            <p class="eyebrow reveal-text">SCROLL VIDEO</p>
+            <h2 class="section-title reveal-text">Scroll controls time. Stop scrolling and the frame holds.</h2>
+          </div>
+          <div class="scrub-video" data-scroll-video aria-label="Scroll-controlled video placeholder">
+            <canvas class="video-canvas" width="1280" height="720"></canvas>
+            <p class="video-label">video placeholder / scroll scrub</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section closing-section" data-section="next">
+        <div class="section-inner closing-layout">
+          <p class="eyebrow reveal-text">NEXT PASS</p>
+          <h2 class="section-title reveal-text">Replace placeholders with Dor Fellous work, then tune the motion.</h2>
+        </div>
+      </section>
+    </main>
 
     <script type="module" src="./src/main.js"></script>
   </body>
