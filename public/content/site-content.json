@@ -17,7 +17,7 @@
         {
           "id": "intro-kicker",
           "type": "text",
-          "title": "DOR FELLOUS / LIVING INTERFACE",
+          "title": "Dor Fellous / Wearable Art ",
           "body": "",
           "size": "eyebrow",
           "alignment": "left"
@@ -25,7 +25,7 @@
         {
           "id": "intro-title",
           "type": "text",
-          "title": "Portfolio material forming through scroll.",
+          "title": "𝗔𝘂𝘁𝗼𝗱𝗶𝗱𝗮𝗰𝘁 𝗠𝘂𝗹𝘁𝗶𝗱𝗶𝘀𝗰𝗶𝗽𝗹𝗶𝗻𝗮𝗿𝘆 𝗔𝗿𝘁𝗶𝘀𝘁 • 𝗖𝗿𝗲𝗮𝘁𝗶𝘃𝗲 𝗧𝗲𝗰𝗵𝗻𝗼𝗹𝗼𝗴𝗶𝘀𝘁 • 𝗪𝗲𝗮𝗿𝗮𝗯𝗹𝗲 𝗔𝗿𝘁 • 𝟯𝗗 • 𝗧𝗲𝘅𝘁𝗶𝗹𝗲 & 𝗠𝗮𝘁𝗲𝗿𝗶𝗮𝗹 𝘀𝘆𝘀𝘁𝗲𝗺𝘀 • 𝗡𝗶𝗴𝗵𝘁𝗹𝗶𝗳𝗲 𝗖𝗿𝗲𝗮𝘁𝘂𝗿𝗲",
           "body": "",
           "size": "hero",
           "alignment": "left"
@@ -34,9 +34,44 @@
           "id": "intro-copy",
           "type": "text",
           "title": "",
-          "body": "A dark cinematic prototype where typography, images, and motion behave like matter becoming readable.",
+          "body": "I create wearable objects and visual systems at the intersection of digital tools, physical materials, and experimental craft.\nMy work connects 3D, AI, textiles, fabrication, and body-based design into sculptural pieces that move between fashion, art, and technology.",
           "size": "body",
           "alignment": "left"
+        },
+        {
+          "id": "image-1777220755544",
+          "type": "image",
+          "src": "",
+          "alt": "",
+          "caption": "New image block",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "image-1777220757110",
+          "type": "image",
+          "src": "",
+          "alt": "",
+          "caption": "New image block",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "image-1777220757260",
+          "type": "image",
+          "src": "",
+          "alt": "",
+          "caption": "New image block",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "intro-video",
+          "type": "video",
+          "src": "",
+          "caption": "Intro video placeholder / choose media from public/media",
+          "behavior": "scroll-scrub",
+          "alignment": "right"
         }
       ]
     },
@@ -57,7 +92,7 @@
         {
           "id": "about-title",
           "type": "text",
-          "title": "Soft fragments gather into a personal archive.",
+          "title": "Fashion, art, technology, material, body, fabrication.",
           "body": "",
           "size": "title",
           "alignment": "left"
@@ -69,6 +104,23 @@
           "body": "This first version holds placeholder writing only. The structure is ready for biography, projects, products, press, and contact material once the motion language feels right.",
           "size": "body",
           "alignment": "left"
+        },
+        {
+          "id": "about-image",
+          "type": "image",
+          "src": "",
+          "alt": "About image placeholder",
+          "caption": "About image placeholder / choose media from public/media",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "about-video",
+          "type": "video",
+          "src": "",
+          "caption": "About video placeholder / choose media from public/media",
+          "behavior": "scroll-scrub",
+          "alignment": "right"
         }
       ]
     },
@@ -102,6 +154,32 @@
           "caption": "Placeholder visual surface / replace with real project media.",
           "size": "large",
           "alignment": "right"
+        },
+        {
+          "id": "image-1777220723548",
+          "type": "image",
+          "src": "",
+          "alt": "",
+          "caption": "New image block",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "image-1777220727609",
+          "type": "image",
+          "src": "",
+          "alt": "",
+          "caption": "New image block",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "video-1777220743761",
+          "type": "video",
+          "src": "",
+          "caption": "New video block",
+          "behavior": "scroll-scrub",
+          "alignment": "right"
         }
       ]
     },
@@ -134,6 +212,15 @@
           "caption": "video placeholder / scroll scrub",
           "behavior": "scroll-scrub",
           "alignment": "right"
+        },
+        {
+          "id": "video-scrub-image",
+          "type": "image",
+          "src": "",
+          "alt": "Video Scrub image placeholder",
+          "caption": "Video Scrub image placeholder / choose media from public/media",
+          "size": "large",
+          "alignment": "right"
         }
       ]
     },
@@ -158,6 +245,23 @@
           "body": "",
           "size": "title",
           "alignment": "left"
+        },
+        {
+          "id": "next-image",
+          "type": "image",
+          "src": "",
+          "alt": "Next image placeholder",
+          "caption": "Next image placeholder / choose media from public/media",
+          "size": "large",
+          "alignment": "right"
+        },
+        {
+          "id": "next-video",
+          "type": "video",
+          "src": "",
+          "caption": "Next video placeholder / choose media from public/media",
+          "behavior": "scroll-scrub",
+          "alignment": "right"
         }
       ]
     }
