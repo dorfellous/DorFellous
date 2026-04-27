@@ -239,6 +239,5 @@ function escapeHtml(value) {
 
 function getBasePath() {
   if (import.meta.env?.BASE_URL) return import.meta.env.BASE_URL;
-  if (window.location.pathname.includes('/DorFellous/')) return '/DorFellous/';
   return './public/';
 }
