@@ -12,6 +12,12 @@ const cleanPdfTitles = {
   glasses: 'Product Development / Exhibit 3: Glasses',
   'body-extensions': 'Product Development / Exhibit 4: Accessories / Body Extensions',
 };
+const contentBoundaryFixes = {
+  'digital-fashion': {
+    startMarker: 'Digital Fashion Digital fashion',
+    replacement: 'Digital Fashion Digital fashion',
+  },
+};
 
 let portfolio = null;
 let activeSectionId = null;
@@ -32,10 +38,36 @@ async function loadPortfolio() {
   const data = await response.json();
   return {
     ...data,
-    sections: data.sections.map((section) => ({
-      ...section,
-      title: cleanPdfTitles[section.id] || section.title,
-    })),
+    sections: data.sections.map(normalizeSection),
+  };
+}
+
+function normalizeSection(section) {
+  const fixedSection = {
+    ...section,
+    title: cleanPdfTitles[section.id] || section.title,
+  };
+  const boundaryFix = contentBoundaryFixes[section.id];
+  if (!boundaryFix) return fixedSection;
+
+  const startIndex = fixedSection.blocks.findIndex((block) =>
+    block.text.includes(boundaryFix.startMarker),
+  );
+  if (startIndex < 0) return fixedSection;
+
+  return {
+    ...fixedSection,
+    blocks: fixedSection.blocks.slice(startIndex).map((block, index) => {
+      if (index !== 0) return block;
+      return {
+        ...block,
+        type: 'heading',
+        text: block.text.replace(
+          new RegExp(`^.*?${escapeRegExp(boundaryFix.startMarker)}`),
+          boundaryFix.replacement,
+        ),
+      };
+    }),
   };
 }
 
@@ -235,6 +267,10 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function getBasePath() {
