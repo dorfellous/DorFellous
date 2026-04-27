@@ -24,17 +24,21 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Apply clean portfolio publish bundle
+      - name: Apply clean portfolio publish bundle if needed
         run: |
-          if [ ! -f dor_fellous_site_publish_bundle.zip ]; then
-            echo "dor_fellous_site_publish_bundle.zip was not found at the repository root."
-            exit 1
+          if [ -f public/data/portfolio-sections.json ] && [ -d public/portfolio-images/section-sheets ]; then
+            echo "Extracted portfolio site files already exist at the repository root."
+          else
+            if [ ! -f dor_fellous_site_publish_bundle.zip ]; then
+              echo "dor_fellous_site_publish_bundle.zip was not found at the repository root."
+              exit 1
+            fi
+            unzip -o dor_fellous_site_publish_bundle.zip
+            git checkout -- .github/workflows/deploy.yml
+            rm -f script.js styles.css
+            rm -f public/content/site-content.json public/media/intro-portrait.svg public/media/.gitkeep
+            rm -f src/contentRenderer.js src/controls.js src/editor.js src/navigation.js src/scene.js src/scrollVideo.js src/sections.js
           fi
-          unzip -o dor_fellous_site_publish_bundle.zip
-          git checkout -- .github/workflows/deploy.yml
-          rm -f script.js styles.css
-          rm -f public/content/site-content.json public/media/intro-portrait.svg public/media/.gitkeep
-          rm -f src/contentRenderer.js src/controls.js src/editor.js src/navigation.js src/scene.js src/scrollVideo.js src/sections.js
 
       - name: Commit extracted site files
         run: |
