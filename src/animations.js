@@ -1,159 +1,66 @@
-export function initScrollReveals(gsap, ScrollTrigger) {
-  setupTextReveals(gsap, ScrollTrigger);
-  setupImageReveals(gsap, ScrollTrigger);
-  setupIntroPortraitMotion(gsap, ScrollTrigger);
-}
+let revealObserver = null;
 
-export function initAmbientScrollMotion(gsap, ScrollTrigger) {
-  gsap.utils.toArray('.section-inner').forEach((section, index) => {
-    gsap.to(section, {
-      yPercent: index % 2 === 0 ? -5 : 5,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: section,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true
-      }
-    });
-  });
-}
+export function initScrollReveals() {
+  const items = document.querySelectorAll('.reveal-item');
 
-function setupTextReveals(gsap, ScrollTrigger) {
-  gsap.utils.toArray('.reveal-text').forEach((element) => {
-    const originalText = element.textContent.trim();
-    if (!originalText) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    items.forEach((item) => item.classList.add('is-visible'));
+    return;
+  }
 
-    element.setAttribute('aria-label', originalText);
-    element.textContent = '';
-
-    const words = originalText.split(' ');
-    words.forEach((word, index) => {
-      const span = document.createElement('span');
-      span.className = 'word-fragment';
-      span.textContent = word;
-      span.style.setProperty('--delay-index', index);
-      element.appendChild(span);
-      if (index < words.length - 1) element.append(' ');
-    });
-
-    const fragments = element.querySelectorAll('.word-fragment');
-    gsap.fromTo(
-      fragments,
-      {
-        opacity: 0,
-        y: 28,
-        filter: 'blur(18px)',
-        scaleY: 1.45,
-        skewX: 10
-      },
-      {
-        opacity: 1,
-        y: 0,
-        filter: 'blur(0px)',
-        scaleY: 1,
-        skewX: 0,
-        stagger: 0.035,
-        duration: 1.15,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: element,
-          start: 'top 82%',
-          end: 'top 42%',
-          scrub: 0.7
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
         }
-      }
-    );
-  });
-}
-
-function setupImageReveals(gsap, ScrollTrigger) {
-  gsap.utils.toArray('.reveal-image').forEach((figure) => {
-    const surface = figure.querySelector('.image-surface');
-
-    gsap.fromTo(
-      figure,
-      {
-        opacity: 0.25,
-        filter: 'blur(22px) contrast(1.7)',
-        clipPath: 'inset(18% 16% 24% 12%)'
-      },
-      {
-        opacity: 1,
-        filter: 'blur(0px) contrast(1)',
-        clipPath: 'inset(0% 0% 0% 0%)',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: figure,
-          start: 'top 88%',
-          end: 'center 45%',
-          scrub: true
-        }
-      }
-    );
-
-    if (!surface) return;
-    gsap.fromTo(
-      surface,
-      {
-        backgroundPosition: '0% 50%, 100% 0%, 50% 50%'
-      },
-      {
-        backgroundPosition: '100% 50%, 0% 100%, 50% 35%',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: figure,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true
-        }
-      }
-    );
-  });
-}
-
-function setupIntroPortraitMotion(gsap, ScrollTrigger) {
-  const intro = document.querySelector('[data-section="intro"]');
-  const portrait = document.querySelector('[data-motion="intro-center"]');
-  if (!intro || !portrait) return;
-
-  const introText = intro.querySelectorAll('.reveal-text');
-
-  // This is the first custom intro choreography: edit the values here to tune
-  // how the opening portrait and text travel together through the first scroll.
-  const timeline = gsap.timeline({
-    scrollTrigger: {
-      trigger: intro,
-      start: 'top top',
-      end: 'bottom top',
-      scrub: true
-    }
-  });
-
-  timeline.fromTo(
-    portrait,
-    {
-      xPercent: -18,
-      y: 120,
-      scale: 0.78,
-      rotate: -1.5
+      });
     },
-    {
-      xPercent: 0,
-      y: 0,
-      scale: 1,
-      rotate: 0,
-      ease: 'none'
-    },
-    0
+    { rootMargin: '0px 0px -8% 0px', threshold: 0.12 }
   );
 
-  timeline.to(
-    introText,
-    {
-      y: -70,
-      ease: 'none'
-    },
-    0
-  );
+  items.forEach((item) => revealObserver.observe(item));
+}
+
+export function resetScrollReveals() {
+  if (revealObserver) {
+    revealObserver.disconnect();
+    revealObserver = null;
+  }
+}
+
+export function disperseText(button) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return Promise.resolve();
+  }
+
+  const label = button.textContent.trim();
+  const rect = button.getBoundingClientRect();
+  const overlay = document.createElement('div');
+  overlay.className = 'disperse-layer';
+  overlay.style.left = `${rect.left}px`;
+  overlay.style.top = `${rect.top}px`;
+  overlay.style.width = `${rect.width}px`;
+  overlay.style.height = `${rect.height}px`;
+
+  const characters = [...label];
+  characters.forEach((character, index) => {
+    const span = document.createElement('span');
+    span.textContent = character === ' ' ? '\u00a0' : character;
+    span.style.setProperty('--x', `${Math.cos(index * 1.7) * (22 + index * 1.2)}px`);
+    span.style.setProperty('--y', `${Math.sin(index * 1.3) * (16 + index * 0.9)}px`);
+    span.style.setProperty('--r', `${(index % 2 ? 1 : -1) * (8 + index * 0.4)}deg`);
+    overlay.appendChild(span);
+  });
+
+  document.body.appendChild(overlay);
+  button.classList.add('is-disappearing');
+
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      overlay.remove();
+      resolve();
+    }, 540);
+  });
 }

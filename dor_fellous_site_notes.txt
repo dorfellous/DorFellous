@@ -1,0 +1,25 @@
+Dor Fellous website notes
+
+Structure:
+- The site is a Vite static single-page app for GitHub Pages.
+- Homepage shows “Dor Fellous” and the portfolio category menu in the order taken from the cleaned final portfolio structure.
+- Category views are hash routes, for example `#/section/early-material`.
+- The Shop route is `#/shop` and is intentionally a placeholder: “Shop coming soon”.
+- Portfolio content lives in `public/data/portfolio-sections.json`.
+- Web images live in `public/portfolio-images/site/`.
+- Scroll reveal and category text-disperse animations live in `src/animations.js`.
+
+What changed:
+- Removed the previous 3D/interactive entrance direction from the active app source.
+- Rebuilt the experience as a black, minimal, editorial portfolio and future store foundation.
+- Preserved the cleaned PDF section order, project grouping, and source-order image rhythm.
+- Used cropped web images generated from the PDF placement/crop logic rather than uncropped raw extracted images.
+
+Uncertainties:
+- Some original PDF text extraction joins adjacent phrases; only obvious extraction joins were normalized in the source data generation scripts.
+- Category names were shortened for navigation clarity while preserving the section order and meaning:
+  About, Portfolio Approach, Early Material Work, Early Milestones, Experimenting With New Techniques, Digital Patternmaking / Tools, Daily / Nightlife Wearable Archive, Product Development sections, Commercial Pieces, Creative Collaborations, Digital Fashion, AI as a Creative Tool, HOST, WOOOOOF, PRESS, Shop.
+
+GitHub Pages:
+- Vite base remains `/DorFellous/`, matching the existing public repository path.
+- Existing GitHub Actions Pages workflow is preserved.
