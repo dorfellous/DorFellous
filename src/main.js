@@ -2,6 +2,16 @@ import { disperseText, initScrollReveals, resetScrollReveals } from './animation
 
 const app = document.querySelector('#app');
 const basePath = getBasePath();
+const cleanPdfTitles = {
+  'early-material': 'Early Emotional / Material Work',
+  milestones: 'Early Exhibitions and Milestones',
+  'digital-tools': 'Digital Patternmaking / Transition Into Digital Tools',
+  'wearable-archive': 'Daily Collection and Nightlife Collection / Wearable Collection',
+  shoes: 'Product Development / Exhibit 1: Shoes',
+  bags: 'Product Development / Exhibit 2: Bags',
+  glasses: 'Product Development / Exhibit 3: Glasses',
+  'body-extensions': 'Product Development / Exhibit 4: Accessories / Body Extensions',
+};
 
 let portfolio = null;
 let activeSectionId = null;
@@ -19,7 +29,14 @@ async function loadPortfolio() {
   if (!response.ok) {
     throw new Error('Portfolio data could not be loaded.');
   }
-  return response.json();
+  const data = await response.json();
+  return {
+    ...data,
+    sections: data.sections.map((section) => ({
+      ...section,
+      title: cleanPdfTitles[section.id] || section.title,
+    })),
+  };
 }
 
 function renderRoute() {
@@ -222,5 +239,6 @@ function escapeHtml(value) {
 
 function getBasePath() {
   if (import.meta.env?.BASE_URL) return import.meta.env.BASE_URL;
+  if (window.location.pathname.includes('/DorFellous/')) return '/DorFellous/';
   return './public/';
 }
