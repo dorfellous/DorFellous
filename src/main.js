@@ -2,6 +2,8 @@ import { disperseText, initScrollReveals, resetScrollReveals } from './animation
 
 const app = document.querySelector('#app');
 const basePath = getBasePath();
+// Replace this file to change the scroll-controlled opening video.
+const heroVideoSrc = `${basePath}assets/video/copy_CF4122B4-9E47-4E29-B842-8B0112003167.MOV`;
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
   milestones: 'Early Exhibitions and Milestones',
@@ -21,6 +23,7 @@ const contentBoundaryFixes = {
 
 let portfolio = null;
 let activeSectionId = null;
+let destroyScrollHero = null;
 
 init();
 
@@ -72,6 +75,9 @@ function normalizeSection(section) {
 }
 
 function renderRoute() {
+  destroyScrollHero?.();
+  destroyScrollHero = null;
+
   const route = getRoute();
   if (route.type === 'section') {
     renderSection(route.id);
@@ -96,9 +102,21 @@ function renderHome() {
   activeSectionId = null;
   app.innerHTML = `
     <main class="home-shell" aria-labelledby="home-title">
+      <section class="scroll-video-hero" aria-label="Dor Fellous opening video">
+        <div class="scroll-video-sticky">
+          <video
+            class="scroll-hero-video"
+            src="${heroVideoSrc}"
+            muted
+            playsinline
+            preload="auto"
+          ></video>
+          <div class="scroll-hero-shade" aria-hidden="true"></div>
+          <h1 id="home-title" class="scroll-hero-brand">Dor Fellous</h1>
+        </div>
+      </section>
       <section class="home-hero">
         <p class="home-kicker reveal-item">Creative portfolio / future store</p>
-        <h1 id="home-title" class="home-title">Dor Fellous</h1>
         <nav class="category-menu" aria-label="Portfolio categories">
           ${portfolio.sections.map((section, index) => categoryButton(section.title, `section/${section.id}`, index)).join('')}
           ${categoryButton('Shop', 'shop', portfolio.sections.length)}
@@ -106,7 +124,90 @@ function renderHome() {
       </section>
     </main>
   `;
+  destroyScrollHero = initScrollVideoHero();
   bindCategoryButtons();
+}
+
+function initScrollVideoHero() {
+  const section = document.querySelector('.scroll-video-hero');
+  const video = document.querySelector('.scroll-hero-video');
+  if (!section || !video) return null;
+
+  const fallbackDuration = 8;
+  let metadataReady = Number.isFinite(video.duration) && video.duration > 0;
+  let rafId = 0;
+  let hasUnlockedSeek = false;
+
+  video.pause();
+  video.muted = true;
+  video.playsInline = true;
+
+  const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+  const getDuration = () => (metadataReady && Number.isFinite(video.duration) ? video.duration : fallbackDuration);
+
+  const update = () => {
+    rafId = 0;
+    const scrollableDistance = Math.max(1, section.offsetHeight - window.innerHeight);
+    const progress = clamp(-section.getBoundingClientRect().top / scrollableDistance);
+    const targetTime = progress * getDuration();
+
+    if (metadataReady && Math.abs(video.currentTime - targetTime) > 0.025) {
+      unlockVideoSeeking();
+      try {
+        video.currentTime = targetTime;
+      } catch {
+        // Some mobile browsers reject early seeks until the video is fully ready.
+      }
+    }
+
+    const brandOpacity = clamp((progress - 0.8) / 0.16);
+    const endFade = clamp((progress - 0.84) / 0.16) * 0.58;
+    section.style.setProperty('--brand-opacity', brandOpacity.toFixed(3));
+    section.style.setProperty('--brand-lift', `${((1 - brandOpacity) * 12).toFixed(2)}px`);
+    section.style.setProperty('--end-fade', endFade.toFixed(3));
+  };
+
+  const requestUpdate = () => {
+    if (!rafId) rafId = window.requestAnimationFrame(update);
+  };
+
+  const onMetadata = () => {
+    metadataReady = true;
+    unlockVideoSeeking();
+    requestUpdate();
+  };
+
+  const unlockVideoSeeking = () => {
+    if (hasUnlockedSeek) return;
+    hasUnlockedSeek = true;
+
+    const playAttempt = video.play();
+    if (playAttempt?.then) {
+      playAttempt
+        .then(() => {
+          video.pause();
+          requestUpdate();
+        })
+        .catch(() => {
+          requestUpdate();
+        });
+    }
+  };
+
+  video.addEventListener('loadedmetadata', onMetadata);
+  video.addEventListener('canplay', onMetadata);
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate);
+  video.load();
+  requestUpdate();
+
+  return () => {
+    if (rafId) window.cancelAnimationFrame(rafId);
+    video.removeEventListener('loadedmetadata', onMetadata);
+    video.removeEventListener('canplay', onMetadata);
+    window.removeEventListener('scroll', requestUpdate);
+    window.removeEventListener('resize', requestUpdate);
+  };
 }
 
 function categoryButton(label, route, index) {
