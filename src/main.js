@@ -547,7 +547,7 @@ function groupImages(images) {
     if (Math.abs(image.sourceTop - averageTop) <= threshold && current.length < 4) {
       current.push(image);
     } else {
-      rows.push([image]);
+      rows.push(image);
     }
   });
   return rows.map((row) => row.sort((a, b) => a.sourceX - b.sourceX));
@@ -592,7 +592,6 @@ function getHeroVideoSrc() {
 
 function getPortfolioPdfSrc() {
   const encodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%202.pdf';
-  const sourceEncodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%20%202.pdf';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/pdf/${encodedPdfName}`;
-  return `./${sourceEncodedPdfName}`;
+  return `./public/assets/pdf/${encodedPdfName}`;
 }
