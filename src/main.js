@@ -3,7 +3,7 @@ import { fractureText, initScrollReveals, resetScrollReveals } from './animation
 const app = document.querySelector('#app');
 const basePath = getBasePath();
 // Replace this file to change the scroll-controlled opening video.
-const heroVideoSrc = `${basePath}assets/video/0428.mp4`;
+const heroVideoSrc = getHeroVideoSrc();
 const mainCategories = [
   { id: 'about', label: 'About' },
   { id: 'portfolio', label: 'Portfolio' },
@@ -460,4 +460,9 @@ function escapeRegExp(value) {
 function getBasePath() {
   if (import.meta.env?.BASE_URL) return import.meta.env.BASE_URL;
   return './public/';
+}
+
+function getHeroVideoSrc() {
+  if (import.meta.env?.BASE_URL) return `${basePath}assets/video/0428.mp4`;
+  return './0428.mp4';
 }
