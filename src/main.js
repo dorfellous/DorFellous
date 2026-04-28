@@ -1,4 +1,5 @@
 import { fractureText, initScrollReveals, resetScrollReveals } from './animations.js';
+import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
 
 const app = document.querySelector('#app');
 const basePath = getBasePath();
@@ -28,10 +29,14 @@ const contentBoundaryFixes = {
     replacement: 'Digital Fashion Digital fashion',
   },
 };
+const pdfWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 let portfolio = null;
 let activeSectionId = null;
 let destroyScrollHero = null;
+let activePdfRenderController = null;
 
 init();
 
@@ -85,6 +90,8 @@ function normalizeSection(section) {
 function renderRoute() {
   destroyScrollHero?.();
   destroyScrollHero = null;
+  activePdfRenderController?.abort();
+  activePdfRenderController = null;
 
   const route = getRoute();
   if (route.type === 'category') {
@@ -98,6 +105,9 @@ function renderRoute() {
   }
   resetScrollReveals();
   initScrollReveals();
+  if (route.type === 'category' && route.id === 'portfolio') {
+    initPortfolioPdfViewer();
+  }
 }
 
 function getRoute() {
@@ -279,18 +289,79 @@ function renderPortfolioCategory() {
         <p class="section-count">02</p>
         <h2 id="portfolio-title">Portfolio</h2>
       </header>
-      <div class="portfolio-pdf-shell reveal-item">
-        <iframe
-          class="portfolio-pdf-frame"
-          title="Dor Fellous portfolio PDF"
-          src="${portfolioPdfSrc}"
-        ></iframe>
-        <p class="portfolio-pdf-fallback">
-          <a href="${portfolioPdfSrc}" target="_blank" rel="noreferrer">Open full portfolio PDF</a>
-        </p>
-      </div>
+      <div class="portfolio-pdf-pages" data-pdf-src="${portfolioPdfSrc}" aria-label="Dor Fellous portfolio PDF pages"></div>
+      <p class="portfolio-pdf-fallback">
+        <a href="${portfolioPdfSrc}" target="_blank" rel="noreferrer">Open Full Portfolio PDF</a>
+      </p>
     </section>
   `;
+}
+
+async function initPortfolioPdfViewer() {
+  const container = document.querySelector('.portfolio-pdf-pages');
+  if (!container) return;
+
+  const controller = new AbortController();
+  activePdfRenderController = controller;
+
+  try {
+    const pdf = await pdfjsLib.getDocument({ url: portfolioPdfSrc }).promise;
+    if (controller.signal.aborted) return;
+
+    container.innerHTML = '';
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      if (controller.signal.aborted) return;
+      await renderPortfolioPdfPage(pdf, pageNumber, container, controller.signal);
+      await waitForIdleFrame();
+    }
+  } catch (error) {
+    if (controller.signal.aborted) return;
+    container.innerHTML = '';
+    console.error('Portfolio PDF could not be rendered.', error);
+  }
+}
+
+async function renderPortfolioPdfPage(pdf, pageNumber, container, signal) {
+  const page = await pdf.getPage(pageNumber);
+  if (signal.aborted) return;
+
+  const pageShell = document.createElement('figure');
+  pageShell.className = 'portfolio-pdf-page';
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { alpha: false });
+  const baseViewport = page.getViewport({ scale: 1 });
+  const availableWidth = Math.min(container.clientWidth || 1180, 1180);
+  const cssScale = availableWidth / baseViewport.width;
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  const renderViewport = page.getViewport({ scale: cssScale * pixelRatio });
+
+  canvas.width = Math.floor(renderViewport.width);
+  canvas.height = Math.floor(renderViewport.height);
+  canvas.style.width = `${Math.floor(renderViewport.width / pixelRatio)}px`;
+  canvas.style.height = `${Math.floor(renderViewport.height / pixelRatio)}px`;
+
+  pageShell.appendChild(canvas);
+  container.appendChild(pageShell);
+
+  await page.render({
+    canvasContext: context,
+    viewport: renderViewport,
+  }).promise;
+
+  if (!signal.aborted) {
+    pageShell.classList.add('is-rendered');
+  }
+}
+
+function waitForIdleFrame() {
+  return new Promise((resolve) => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(resolve, { timeout: 160 });
+    } else {
+      window.requestAnimationFrame(resolve);
+    }
+  });
 }
 
 function renderPortfolioCategorySection(section) {
