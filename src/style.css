@@ -248,7 +248,28 @@ img {
 
 .category-content--portfolio {
   display: grid;
-  gap: clamp(78px, 12vw, 148px);
+  gap: clamp(42px, 7vw, 86px);
+}
+
+.portfolio-pdf-shell {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+.portfolio-pdf-frame {
+  display: block;
+  width: 100%;
+  height: min(82svh, 980px);
+  min-height: 620px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+
+.portfolio-pdf-fallback {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .category-portfolio-section {
@@ -536,6 +557,11 @@ img {
 
   .text-flow {
     position: static;
+  }
+
+  .portfolio-pdf-frame {
+    height: 78svh;
+    min-height: 520px;
   }
 
   .image-row {
