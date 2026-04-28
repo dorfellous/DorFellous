@@ -31,6 +31,14 @@ export function resetScrollReveals() {
 }
 
 export function disperseText(button) {
+  return fragmentText(button, 'disperse-layer');
+}
+
+export function fractureText(button) {
+  return fragmentText(button, 'fracture-layer');
+}
+
+function fragmentText(button, layerClassName) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return Promise.resolve();
   }
@@ -38,7 +46,7 @@ export function disperseText(button) {
   const label = button.textContent.trim();
   const rect = button.getBoundingClientRect();
   const overlay = document.createElement('div');
-  overlay.className = 'disperse-layer';
+  overlay.className = layerClassName;
   overlay.style.left = `${rect.left}px`;
   overlay.style.top = `${rect.top}px`;
   overlay.style.width = `${rect.width}px`;
