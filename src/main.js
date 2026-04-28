@@ -3,7 +3,7 @@ import { disperseText, initScrollReveals, resetScrollReveals } from './animation
 const app = document.querySelector('#app');
 const basePath = getBasePath();
 // Replace this file to change the scroll-controlled opening video.
-const heroVideoSrc = `${basePath}assets/video/copy_CF4122B4-9E47-4E29-B842-8B0112003167.MOV`;
+const heroVideoSrc = `${basePath}assets/video/0428.mp4`;
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
   milestones: 'Early Exhibitions and Milestones',
