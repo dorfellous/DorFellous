@@ -547,7 +547,7 @@ function groupImages(images) {
     if (Math.abs(image.sourceTop - averageTop) <= threshold && current.length < 4) {
       current.push(image);
     } else {
-      rows.push(image);
+      rows.push([image]);
     }
   });
   return rows.map((row) => row.sort((a, b) => a.sourceX - b.sourceX));
