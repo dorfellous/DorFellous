@@ -30,6 +30,9 @@ const contentBoundaryFixes = {
   },
 };
 const pdfWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
+const pdfSupportPath = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
+const maxPdfSliceHeight = 1400;
+const maxPdfRenderScale = 2;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
@@ -303,9 +306,16 @@ async function initPortfolioPdfViewer() {
 
   const controller = new AbortController();
   activePdfRenderController = controller;
+  container.innerHTML = '<p class="portfolio-pdf-loading">Loading portfolio...</p>';
 
   try {
-    const pdf = await pdfjsLib.getDocument({ url: portfolioPdfSrc }).promise;
+    const pdf = await pdfjsLib.getDocument({
+      url: portfolioPdfSrc,
+      cMapUrl: `${pdfSupportPath}cmaps/`,
+      cMapPacked: true,
+      standardFontDataUrl: `${pdfSupportPath}standard_fonts/`,
+      wasmUrl: `${pdfSupportPath}wasm/`,
+    }).promise;
     if (controller.signal.aborted) return;
 
     container.innerHTML = '';
@@ -316,7 +326,11 @@ async function initPortfolioPdfViewer() {
     }
   } catch (error) {
     if (controller.signal.aborted) return;
-    container.innerHTML = '';
+    container.innerHTML = `
+      <p class="portfolio-pdf-error">
+        The portfolio PDF could not be rendered here. Please use the link below to open it directly.
+      </p>
+    `;
     console.error('Portfolio PDF could not be rendered.', error);
   }
 }
@@ -325,31 +339,60 @@ async function renderPortfolioPdfPage(pdf, pageNumber, container, signal) {
   const page = await pdf.getPage(pageNumber);
   if (signal.aborted) return;
 
-  const pageShell = document.createElement('figure');
-  pageShell.className = 'portfolio-pdf-page';
-
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d', { alpha: false });
   const baseViewport = page.getViewport({ scale: 1 });
   const availableWidth = Math.min(container.clientWidth || 1180, 1180);
   const cssScale = availableWidth / baseViewport.width;
-  const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-  const renderViewport = page.getViewport({ scale: cssScale * pixelRatio });
+  const viewport = page.getViewport({ scale: cssScale });
+  const sliceCount = Math.ceil(viewport.height / maxPdfSliceHeight);
 
-  canvas.width = Math.floor(renderViewport.width);
-  canvas.height = Math.floor(renderViewport.height);
-  canvas.style.width = `${Math.floor(renderViewport.width / pixelRatio)}px`;
-  canvas.style.height = `${Math.floor(renderViewport.height / pixelRatio)}px`;
+  for (let sliceIndex = 0; sliceIndex < sliceCount; sliceIndex += 1) {
+    if (signal.aborted) return;
+    await renderPortfolioPdfSlice(page, viewport, pageNumber, sliceIndex, sliceCount, container, signal);
+    await waitForIdleFrame();
+  }
+}
 
-  pageShell.appendChild(canvas);
+async function renderPortfolioPdfSlice(page, viewport, pageNumber, sliceIndex, sliceCount, container, signal) {
+  const sliceTop = sliceIndex * maxPdfSliceHeight;
+  const sliceHeight = Math.min(maxPdfSliceHeight, viewport.height - sliceTop);
+  const pixelRatio = Math.min(window.devicePixelRatio || 1, maxPdfRenderScale);
+  const pageShell = document.createElement('figure');
+  pageShell.className = 'portfolio-pdf-page';
+  pageShell.style.minHeight = `${Math.round(sliceHeight)}px`;
+  pageShell.innerHTML = '<span>Rendering page...</span>';
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { alpha: false });
+
+  canvas.width = Math.ceil(viewport.width * pixelRatio);
+  canvas.height = Math.ceil(sliceHeight * pixelRatio);
+  canvas.style.width = `${Math.ceil(viewport.width)}px`;
+  canvas.style.height = `${Math.ceil(sliceHeight)}px`;
   container.appendChild(pageShell);
 
-  await page.render({
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const renderTask = page.render({
     canvasContext: context,
-    viewport: renderViewport,
-  }).promise;
+    viewport,
+    transform: [pixelRatio, 0, 0, pixelRatio, 0, -sliceTop * pixelRatio],
+    background: '#ffffff',
+  });
+
+  try {
+    await renderTask.promise;
+  } catch (error) {
+    pageShell.classList.add('has-error');
+    pageShell.textContent = sliceCount > 1
+      ? `Page ${pageNumber}, section ${sliceIndex + 1} could not render.`
+      : `Page ${pageNumber} could not render.`;
+    throw error;
+  }
 
   if (!signal.aborted) {
+    pageShell.style.minHeight = '';
+    pageShell.replaceChildren(canvas);
     pageShell.classList.add('is-rendered');
   }
 }
@@ -548,7 +591,8 @@ function getHeroVideoSrc() {
 }
 
 function getPortfolioPdfSrc() {
-  const encodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%20%202.pdf';
+  const encodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%202.pdf';
+  const sourceEncodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%20%202.pdf';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/pdf/${encodedPdfName}`;
-  return `./${encodedPdfName}`;
+  return `./${sourceEncodedPdfName}`;
 }
