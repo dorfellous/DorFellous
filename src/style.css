@@ -251,22 +251,38 @@ img {
   gap: clamp(42px, 7vw, 86px);
 }
 
-.portfolio-pdf-shell {
+.portfolio-pdf-pages {
   width: min(100%, 1180px);
+  display: grid;
+  gap: clamp(28px, 4.4vw, 62px);
   margin: 0 auto;
 }
 
-.portfolio-pdf-frame {
-  display: block;
+.portfolio-pdf-page {
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 520ms ease,
+    transform 520ms ease;
+}
+
+.portfolio-pdf-page.is-rendered {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.portfolio-pdf-page canvas {
   width: 100%;
-  height: min(82svh, 980px);
-  min-height: 620px;
-  border: 1px solid var(--rule);
-  background: var(--panel);
+  max-width: 100%;
+  height: auto;
+  background: #fff;
 }
 
 .portfolio-pdf-fallback {
-  margin: 18px 0 0;
+  margin: 0;
   color: var(--muted);
   font-size: 0.9rem;
   text-align: center;
@@ -559,9 +575,8 @@ img {
     position: static;
   }
 
-  .portfolio-pdf-frame {
-    height: 78svh;
-    min-height: 520px;
+  .portfolio-pdf-pages {
+    gap: clamp(18px, 7vw, 34px);
   }
 
   .image-row {
