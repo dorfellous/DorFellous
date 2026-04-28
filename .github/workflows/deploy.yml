@@ -57,6 +57,11 @@ jobs:
         with:
           node-version: 20
 
+      - name: Prepare hero video
+        run: |
+          mkdir -p public/assets/video
+          cp copy_CF4122B4-9E47-4E29-B842-8B0112003167.MOV public/assets/video/copy_CF4122B4-9E47-4E29-B842-8B0112003167.MOV
+
       - name: Install dependencies
         run: npm install
 
