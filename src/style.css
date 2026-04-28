@@ -260,8 +260,11 @@ img {
 
 .portfolio-pdf-page {
   display: grid;
+  align-items: center;
   justify-items: center;
   margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
   opacity: 0;
   transform: translateY(18px);
   transition:
@@ -274,11 +277,32 @@ img {
   transform: translateY(0);
 }
 
+.portfolio-pdf-page.has-error {
+  min-height: 120px;
+  border: 1px solid var(--rule);
+  padding: 24px;
+  color: var(--muted);
+  opacity: 1;
+  transform: none;
+}
+
 .portfolio-pdf-page canvas {
   width: 100%;
   max-width: 100%;
   height: auto;
   background: #fff;
+}
+
+.portfolio-pdf-loading,
+.portfolio-pdf-error {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 28px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .portfolio-pdf-fallback {
