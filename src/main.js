@@ -1,9 +1,16 @@
-import { disperseText, initScrollReveals, resetScrollReveals } from './animations.js';
+import { fractureText, initScrollReveals, resetScrollReveals } from './animations.js';
 
 const app = document.querySelector('#app');
 const basePath = getBasePath();
 // Replace this file to change the scroll-controlled opening video.
 const heroVideoSrc = `${basePath}assets/video/0428.mp4`;
+const mainCategories = [
+  { id: 'about', label: 'About' },
+  { id: 'portfolio', label: 'Portfolio' },
+  { id: 'press', label: 'Press' },
+  { id: 'store', label: 'Store' },
+];
+const portfolioExcludedSectionIds = new Set(['about', 'press']);
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
   milestones: 'Early Exhibitions and Milestones',
@@ -79,10 +86,12 @@ function renderRoute() {
   destroyScrollHero = null;
 
   const route = getRoute();
-  if (route.type === 'section') {
+  if (route.type === 'category') {
+    renderHome(route.id);
+  } else if (route.type === 'section') {
     renderSection(route.id);
   } else if (route.type === 'shop') {
-    renderShop();
+    renderHome('store');
   } else {
     renderHome();
   }
@@ -93,13 +102,16 @@ function renderRoute() {
 function getRoute() {
   const hash = window.location.hash.replace(/^#\/?/, '');
   if (!hash) return { type: 'home' };
+  if (mainCategories.some((category) => category.id === hash)) {
+    return { type: 'category', id: hash };
+  }
   if (hash === 'shop') return { type: 'shop' };
   if (hash.startsWith('section/')) return { type: 'section', id: hash.replace('section/', '') };
   return { type: 'home' };
 }
 
-function renderHome() {
-  activeSectionId = null;
+function renderHome(activeCategory = null) {
+  activeSectionId = activeCategory;
   app.innerHTML = `
     <main class="home-shell" aria-labelledby="home-title">
       <section class="scroll-video-hero" aria-label="Dor Fellous opening video">
@@ -115,17 +127,16 @@ function renderHome() {
           <h1 id="home-title" class="scroll-hero-brand">Dor Fellous</h1>
         </div>
       </section>
-      <section class="home-hero">
-        <p class="home-kicker reveal-item">Creative portfolio / future store</p>
-        <nav class="category-menu" aria-label="Portfolio categories">
-          ${portfolio.sections.map((section, index) => categoryButton(section.title, `section/${section.id}`, index)).join('')}
-          ${categoryButton('Shop', 'shop', portfolio.sections.length)}
+      <section class="home-hero" aria-label="Site categories">
+        <nav class="main-category-menu reveal-item" aria-label="Main categories">
+          ${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}
         </nav>
+        ${activeCategory ? renderMainCategoryContent(activeCategory) : ''}
       </section>
     </main>
   `;
   destroyScrollHero = initScrollVideoHero();
-  bindCategoryButtons();
+  bindMainCategoryButtons();
 }
 
 function initScrollVideoHero() {
@@ -210,22 +221,93 @@ function initScrollVideoHero() {
   };
 }
 
-function categoryButton(label, route, index) {
+function mainCategoryButton(category, index, activeCategory) {
   return `
-    <button class="category-link" type="button" data-route="${route}" style="--delay:${index * 78}ms">
-      <span>${escapeHtml(label)}</span>
+    <button
+      class="main-category-link${activeCategory === category.id ? ' is-active' : ''}"
+      type="button"
+      data-category="${category.id}"
+      style="--delay:${index * 90}ms"
+      ${activeCategory === category.id ? 'aria-current="page"' : ''}
+    >
+      <span>${escapeHtml(category.label)}</span>
     </button>
   `;
 }
 
-function bindCategoryButtons() {
-  document.querySelectorAll('.category-link').forEach((button) => {
+function bindMainCategoryButtons() {
+  document.querySelectorAll('.main-category-link').forEach((button) => {
     button.addEventListener('click', async () => {
-      const route = button.dataset.route;
-      await disperseText(button);
-      window.location.hash = `#/${route}`;
+      const category = button.dataset.category;
+      await fractureText(button);
+      window.location.hash = `#/${category}`;
     });
   });
+}
+
+function renderMainCategoryContent(category) {
+  if (category === 'about') return renderAboutCategory();
+  if (category === 'portfolio') return renderPortfolioCategory();
+  if (category === 'press') return renderEmptyCategory('Press', 'Press coming soon');
+  if (category === 'store') return renderEmptyCategory('Store', portfolio.shop?.status || 'Store coming soon');
+  return '';
+}
+
+function renderAboutCategory() {
+  const about = portfolio.sections.find((section) => section.id === 'about');
+  if (!about) return renderEmptyCategory('About', 'About content could not be found');
+  const aboutBlocks = about.blocks.filter((block, index) =>
+    !(index === 0 && block.type === 'heading' && block.text === about.title),
+  );
+
+  return `
+    <section class="category-content category-content--about reveal-item" aria-labelledby="about-title">
+      <header class="category-content-header">
+        <p class="section-count">01</p>
+        <h2 id="about-title">${escapeHtml(about.title)}</h2>
+      </header>
+      ${renderBlocks(aboutBlocks)}
+    </section>
+  `;
+}
+
+function renderPortfolioCategory() {
+  const sections = portfolio.sections.filter((section) => !portfolioExcludedSectionIds.has(section.id));
+  return `
+    <section class="category-content category-content--portfolio" aria-labelledby="portfolio-title">
+      <header class="category-content-header reveal-item">
+        <p class="section-count">02</p>
+        <h2 id="portfolio-title">Portfolio</h2>
+      </header>
+      ${sections.map((section) => renderPortfolioCategorySection(section)).join('')}
+    </section>
+  `;
+}
+
+function renderPortfolioCategorySection(section) {
+  return `
+    <article class="portfolio-section category-portfolio-section reveal-item" aria-labelledby="portfolio-${section.id}">
+      <header class="section-hero">
+        <p class="section-count">${String(section.order).padStart(2, '0')}</p>
+        <h3 id="portfolio-${section.id}">${escapeHtml(section.title)}</h3>
+      </header>
+      <div class="section-body">
+        ${renderBlocks(section.blocks)}
+        ${renderSectionMedia(section)}
+      </div>
+    </article>
+  `;
+}
+
+function renderEmptyCategory(title, message) {
+  return `
+    <section class="category-content category-content--empty reveal-item" aria-labelledby="${title.toLowerCase()}-title">
+      <header class="category-content-header">
+        <p class="section-count">${escapeHtml(title)}</p>
+        <h2 id="${title.toLowerCase()}-title">${escapeHtml(message)}</h2>
+      </header>
+    </section>
+  `;
 }
 
 function renderSection(sectionId) {
@@ -250,7 +332,7 @@ function renderSection(sectionId) {
         </header>
         <div class="section-body">
           ${renderBlocks(section.blocks)}
-          ${renderImageSequence(section.images)}
+          ${renderSectionMedia(section)}
         </div>
       </article>
       ${sectionPager(prev, next)}
@@ -277,8 +359,9 @@ function siteHeader() {
     <header class="site-header">
       <a href="#/" class="home-link">Dor Fellous</a>
       <nav aria-label="Category navigation">
-        <a href="#/">Menu</a>
-        <a href="#/shop" ${activeSectionId === 'shop' ? 'aria-current="page"' : ''}>Shop</a>
+        ${mainCategories.map((category) => `
+          <a href="#/${category.id}" ${activeSectionId === category.id ? 'aria-current="page"' : ''}>${escapeHtml(category.label)}</a>
+        `).join('')}
       </nav>
     </header>
   `;
@@ -297,8 +380,7 @@ function renderBlocks(blocks) {
   `;
 }
 
-function renderImageSequence(images) {
-  const section = portfolio.sections.find((item) => item.id === activeSectionId);
+function renderSectionMedia(section) {
   if (section?.sheets?.length) {
     return `
       <div class="image-sequence">
@@ -311,6 +393,7 @@ function renderImageSequence(images) {
     `;
   }
 
+  const images = section.images || [];
   if (!images.length) return '';
   const rows = groupImages(images);
   return `
