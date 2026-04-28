@@ -4,13 +4,14 @@ const app = document.querySelector('#app');
 const basePath = getBasePath();
 // Replace this file to change the scroll-controlled opening video.
 const heroVideoSrc = getHeroVideoSrc();
+// Replace this file to change the exact PDF shown in the Portfolio category.
+const portfolioPdfSrc = getPortfolioPdfSrc();
 const mainCategories = [
   { id: 'about', label: 'About' },
   { id: 'portfolio', label: 'Portfolio' },
   { id: 'press', label: 'Press' },
   { id: 'store', label: 'Store' },
 ];
-const portfolioExcludedSectionIds = new Set(['about', 'press']);
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
   milestones: 'Early Exhibitions and Milestones',
@@ -272,14 +273,22 @@ function renderAboutCategory() {
 }
 
 function renderPortfolioCategory() {
-  const sections = portfolio.sections.filter((section) => !portfolioExcludedSectionIds.has(section.id));
   return `
     <section class="category-content category-content--portfolio" aria-labelledby="portfolio-title">
       <header class="category-content-header reveal-item">
         <p class="section-count">02</p>
         <h2 id="portfolio-title">Portfolio</h2>
       </header>
-      ${sections.map((section) => renderPortfolioCategorySection(section)).join('')}
+      <div class="portfolio-pdf-shell reveal-item">
+        <iframe
+          class="portfolio-pdf-frame"
+          title="Dor Fellous portfolio PDF"
+          src="${portfolioPdfSrc}"
+        ></iframe>
+        <p class="portfolio-pdf-fallback">
+          <a href="${portfolioPdfSrc}" target="_blank" rel="noreferrer">Open full portfolio PDF</a>
+        </p>
+      </div>
     </section>
   `;
 }
@@ -465,4 +474,10 @@ function getBasePath() {
 function getHeroVideoSrc() {
   if (import.meta.env?.BASE_URL) return `${basePath}assets/video/0428.mp4`;
   return './0428.mp4';
+}
+
+function getPortfolioPdfSrc() {
+  const encodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%20%202.pdf';
+  if (import.meta.env?.BASE_URL) return `${basePath}assets/pdf/${encodedPdfName}`;
+  return `./${encodedPdfName}`;
 }
