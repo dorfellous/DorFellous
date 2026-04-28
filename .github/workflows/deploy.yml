@@ -65,7 +65,7 @@ jobs:
       - name: Prepare portfolio PDF
         run: |
           mkdir -p public/assets/pdf
-          cp "ready Dor fellous Creative protfolio 2026  2.pdf" "public/assets/pdf/ready Dor fellous Creative protfolio 2026  2.pdf"
+          cp "ready Dor fellous Creative protfolio 2026  2.pdf" "public/assets/pdf/ready Dor fellous Creative protfolio 2026 2.pdf"
 
       - name: Install dependencies
         run: npm install
