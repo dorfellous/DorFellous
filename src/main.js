@@ -1034,13 +1034,13 @@ function getBasePath() {
 function getHeroVideoSrc() {
   const encodedVideoName = 'hero_scroll_optimized_1080.mp4';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/video/${encodedVideoName}`;
-  return `./public/assets/video/${encodedVideoName}`;
+  return `./${encodedVideoName}`;
 }
 
 function getContentBackgroundVideoSrc() {
   const encodedVideoName = 'Background%20opmtimized%20.mp4';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/video/${encodedVideoName}`;
-  return `./public/assets/video/${encodedVideoName}`;
+  return `./${encodedVideoName}`;
 }
 
 function getPortfolioPdfSrc() {
