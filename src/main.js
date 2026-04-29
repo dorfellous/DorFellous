@@ -128,7 +128,7 @@ async function waitForInitialAssets(loader) {
     ).then(() => loader.setProgress(0.9)),
   ]);
 
-  await withTimeout(requiredAssets, 16000, 'Initial visual assets took too long to preload.');
+  await withTimeout(requiredAssets, 24000, 'Initial visual assets took too long to preload.');
 }
 
 function waitForVideoReadiness(video, options = {}) {
@@ -183,7 +183,7 @@ function waitForVideoReadiness(video, options = {}) {
     const timeoutId = window.setTimeout(() => {
       console.warn(`${label} preload timed out.`, video.currentSrc || video.src);
       done();
-    }, seekProbe ? 12000 : 9000);
+    }, seekProbe ? 15000 : 11000);
 
     video.addEventListener('loadedmetadata', onData);
     video.addEventListener('loadeddata', onData);
