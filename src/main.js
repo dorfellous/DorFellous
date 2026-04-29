@@ -262,19 +262,28 @@ function initContentBackgroundVideo() {
   let metadataReady = Number.isFinite(video.duration) && video.duration > 0;
   let rafId = 0;
   let hasUnlockedSeek = false;
+  let latestTargetTime = 0;
 
+  video.autoplay = false;
+  video.loop = false;
+  video.controls = false;
   video.pause();
   video.muted = true;
   video.playsInline = true;
+  video.removeAttribute('autoplay');
+  video.removeAttribute('loop');
+  video.removeAttribute('controls');
 
   const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
   const getDuration = () => (metadataReady && Number.isFinite(video.duration) ? video.duration : fallbackDuration);
 
   const update = () => {
     rafId = 0;
-    const scrollableDistance = Math.max(1, region.offsetHeight - window.innerHeight);
-    const progress = clamp(-region.getBoundingClientRect().top / scrollableDistance);
+    const regionTop = region.getBoundingClientRect().top + window.scrollY;
+    const scrollableDistance = Math.max(1, region.scrollHeight - window.innerHeight);
+    const progress = clamp((window.scrollY - regionTop) / scrollableDistance);
     const targetTime = progress * getDuration();
+    latestTargetTime = targetTime;
 
     if (metadataReady && Math.abs(video.currentTime - targetTime) > 0.025) {
       unlockVideoSeeking();
@@ -284,6 +293,8 @@ function initContentBackgroundVideo() {
         // Some mobile browsers reject seeks until the video is fully ready.
       }
     }
+
+    if (!video.paused) video.pause();
   };
 
   const requestUpdate = () => {
@@ -305,11 +316,23 @@ function initContentBackgroundVideo() {
       playAttempt
         .then(() => {
           video.pause();
+          try {
+            video.currentTime = latestTargetTime;
+          } catch {
+            // Keep the fallback frame if the browser still blocks seeking.
+          }
           requestUpdate();
         })
         .catch(() => {
+          video.pause();
           requestUpdate();
         });
+      window.setTimeout(() => {
+        video.pause();
+        requestUpdate();
+      }, 80);
+    } else {
+      video.pause();
     }
   };
 
