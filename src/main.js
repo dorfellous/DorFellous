@@ -35,6 +35,7 @@ const pdfWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.
 const pdfSupportPath = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
 const maxPdfSliceHeight = 1400;
 const maxPdfRenderScale = 2;
+const scrubEndSafetySeconds = 0.06;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
@@ -49,6 +50,8 @@ init();
 
 async function init() {
   const loader = initLoadingScreen();
+  addPreloadHint(heroVideoSrc, 'video');
+  addPreloadHint(contentBackgroundVideoSrc, 'video');
 
   try {
     loader.setProgress(0.08);
@@ -111,16 +114,26 @@ function initLoadingScreen() {
 
 async function waitForInitialAssets(loader) {
   const requiredAssets = Promise.allSettled([
-    waitForVideoReadiness(document.querySelector('.scroll-hero-video')).then(() => loader.setProgress(0.5)),
-    waitForVideoReadiness(document.querySelector('.content-background-video')).then(() => loader.setProgress(0.72)),
-    waitForPortfolioDocument().then(() => loader.setProgress(0.9)),
+    waitForVideoReadiness(document.querySelector('.scroll-hero-video'), {
+      label: 'Opening hero video',
+      seekProbe: true,
+    }).then(() => loader.setProgress(0.58)),
+    waitForVideoReadiness(document.querySelector('.content-background-video'), {
+      label: 'Content background video',
+    }).then(() => loader.setProgress(0.76)),
+    withTimeout(
+      waitForPortfolioDocument(),
+      4500,
+      'Portfolio PDF preload timed out; pages will render progressively.',
+    ).then(() => loader.setProgress(0.9)),
   ]);
 
-  await withTimeout(requiredAssets, 12000, 'Initial visual assets took too long to preload.');
+  await withTimeout(requiredAssets, 16000, 'Initial visual assets took too long to preload.');
 }
 
-function waitForVideoReadiness(video) {
+function waitForVideoReadiness(video, options = {}) {
   if (!video) return Promise.resolve();
+  const { label = 'Video', seekProbe = false } = options;
   video.autoplay = false;
   video.controls = false;
   video.loop = false;
@@ -133,16 +146,17 @@ function waitForVideoReadiness(video) {
   }
   video.pause();
 
-  if (video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0) {
-    return Promise.resolve();
+  if (video.readyState >= 2 && Number.isFinite(video.duration) && video.duration > 0) {
+    return seekProbe ? probeVideoSeek(video, label) : Promise.resolve();
   }
 
   return new Promise((resolve) => {
     let settled = false;
-    const done = () => {
+    const done = async () => {
       if (settled) return;
       settled = true;
       cleanup();
+      if (seekProbe) await probeVideoSeek(video, label);
       try {
         video.currentTime = 0;
       } catch {
@@ -152,10 +166,10 @@ function waitForVideoReadiness(video) {
       resolve();
     };
     const onData = () => {
-      if (video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0) done();
+      if (video.readyState >= 2 && Number.isFinite(video.duration) && video.duration > 0) done();
     };
     const onError = () => {
-      console.warn('Video preload fell back before full readiness.', video.currentSrc || video.src);
+      console.warn(`${label} preload fell back before full readiness.`, video.currentSrc || video.src);
       done();
     };
     const cleanup = () => {
@@ -167,9 +181,9 @@ function waitForVideoReadiness(video) {
       video.removeEventListener('error', onError);
     };
     const timeoutId = window.setTimeout(() => {
-      console.warn('Video preload timed out.', video.currentSrc || video.src);
+      console.warn(`${label} preload timed out.`, video.currentSrc || video.src);
       done();
-    }, 8000);
+    }, seekProbe ? 12000 : 9000);
 
     video.addEventListener('loadedmetadata', onData);
     video.addEventListener('loadeddata', onData);
@@ -178,6 +192,50 @@ function waitForVideoReadiness(video) {
     video.addEventListener('error', onError);
     video.load();
     onData();
+  });
+}
+
+async function probeVideoSeek(video, label) {
+  const duration = Number.isFinite(video.duration) ? video.duration : 0;
+  if (!duration) return;
+
+  const testTime = Math.min(getSafeScrubEndTime(duration), Math.max(0.2, duration * 0.18));
+  const canSeek = await seekVideoTo(video, testTime, 1800);
+  const canReturn = await seekVideoTo(video, 0, 1200);
+  video.pause();
+
+  if (!canSeek || !canReturn) {
+    console.warn(`${label} did not finish its preload seek probe; entering with scroll fallback.`);
+  }
+}
+
+function seekVideoTo(video, time, timeoutMs) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (result) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(result);
+    };
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener('error', onError);
+    };
+    const onSeeked = () => done(true);
+    const onError = () => done(false);
+    const timeoutId = window.setTimeout(() => done(false), timeoutMs);
+
+    video.addEventListener('seeked', onSeeked, { once: true });
+    video.addEventListener('error', onError, { once: true });
+
+    try {
+      video.currentTime = time;
+      if (Math.abs(video.currentTime - time) < 0.015) done(true);
+    } catch {
+      done(false);
+    }
   });
 }
 
@@ -194,6 +252,16 @@ async function waitForPortfolioDocument() {
   } catch (error) {
     console.warn('Portfolio PDF preload fell back.', error);
   }
+}
+
+function addPreloadHint(href, as) {
+  if (!href || document.querySelector(`link[rel="preload"][href="${href}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = as;
+  link.href = href;
+  if (as === 'video') link.type = 'video/mp4';
+  document.head.appendChild(link);
 }
 
 function withTimeout(promise, timeoutMs, warning) {
@@ -348,12 +416,13 @@ function initScrollVideoHero() {
     rafId = 0;
     const scrollableDistance = Math.max(1, section.offsetHeight - window.innerHeight);
     const progress = clamp(-section.getBoundingClientRect().top / scrollableDistance);
-    const targetTime = progress * getDuration();
+    const targetTime = getScrollScrubTime(progress, getDuration());
+    const seekThreshold = Math.max(0.03, getDuration() / 900);
 
-    if (metadataReady && Math.abs(video.currentTime - targetTime) > 0.025) {
+    if (metadataReady && Math.abs(video.currentTime - targetTime) > seekThreshold) {
       unlockVideoSeeking();
       try {
-        video.currentTime = targetTime;
+        seekVideoForScroll(video, targetTime);
       } catch {
         // Some mobile browsers reject early seeks until the video is fully ready.
       }
@@ -438,13 +507,14 @@ function initContentBackgroundVideo() {
     const regionTop = region.getBoundingClientRect().top + window.scrollY;
     const scrollableDistance = Math.max(1, region.scrollHeight - window.innerHeight);
     const progress = clamp((window.scrollY - regionTop) / scrollableDistance);
-    const targetTime = progress * getDuration();
+    const targetTime = getScrollScrubTime(progress, getDuration());
+    const seekThreshold = Math.max(0.03, getDuration() / 900);
     latestTargetTime = targetTime;
 
-    if (metadataReady && Math.abs(video.currentTime - targetTime) > 0.025) {
+    if (metadataReady && Math.abs(video.currentTime - targetTime) > seekThreshold) {
       unlockVideoSeeking();
       try {
-        video.currentTime = targetTime;
+        seekVideoForScroll(video, targetTime);
       } catch {
         // Some mobile browsers reject seeks until the video is fully ready.
       }
@@ -506,6 +576,27 @@ function initContentBackgroundVideo() {
     window.removeEventListener('scroll', requestUpdate);
     window.removeEventListener('resize', requestUpdate);
   };
+}
+
+function getScrollScrubTime(progress, duration) {
+  const safeProgress = Math.min(1, Math.max(0, progress));
+  const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+  if (!safeDuration) return 0;
+  return safeProgress * getSafeScrubEndTime(safeDuration);
+}
+
+function getSafeScrubEndTime(duration) {
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+  return Math.max(0, duration - Math.min(scrubEndSafetySeconds, duration * 0.01));
+}
+
+function seekVideoForScroll(video, targetTime) {
+  if (typeof video.fastSeek === 'function' && Math.abs(video.currentTime - targetTime) > 0.65) {
+    video.fastSeek(targetTime);
+  } else {
+    video.currentTime = targetTime;
+  }
+  if (!video.paused) video.pause();
 }
 
 function mainCategoryButton(category, index, activeCategory) {
