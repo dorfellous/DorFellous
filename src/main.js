@@ -133,7 +133,7 @@ function waitForVideoReadiness(video) {
   }
   video.pause();
 
-  if (video.readyState >= 3 && Number.isFinite(video.duration) && video.duration > 0) {
+  if (video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0) {
     return Promise.resolve();
   }
 
@@ -152,7 +152,7 @@ function waitForVideoReadiness(video) {
       resolve();
     };
     const onData = () => {
-      if (video.readyState >= 2 && Number.isFinite(video.duration) && video.duration > 0) done();
+      if (video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0) done();
     };
     const onError = () => {
       console.warn('Video preload fell back before full readiness.', video.currentSrc || video.src);
