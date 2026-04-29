@@ -31,6 +31,10 @@ body {
   color: var(--ink);
 }
 
+body.is-loading {
+  overflow: hidden;
+}
+
 button,
 a {
   font: inherit;
@@ -44,6 +48,65 @@ a {
 img {
   display: block;
   max-width: 100%;
+}
+
+.site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  background: #020202;
+  color: var(--ink);
+  opacity: 1;
+  transition:
+    opacity 680ms ease,
+    visibility 680ms ease;
+}
+
+.site-loader.is-complete {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.site-loader__content {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.site-loader__ring {
+  --loader-progress: 0%;
+  position: relative;
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+  background: conic-gradient(var(--ink) var(--loader-progress), rgba(241, 238, 232, 0.14) 0);
+  transition: background 220ms ease;
+}
+
+.site-loader__ring::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: #020202;
+}
+
+.site-loader__ring span {
+  position: absolute;
+  inset: 11px;
+  z-index: 1;
+  border: 1px solid rgba(241, 238, 232, 0.28);
+  border-radius: inherit;
+}
+
+.site-loader__text {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .home-shell {
@@ -150,8 +213,8 @@ img {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 25%, rgba(5, 5, 5, 0.24), rgba(5, 5, 5, 0.72) 68%),
-    rgba(5, 5, 5, 0.46);
+    radial-gradient(circle at 50% 25%, rgba(5, 5, 5, 0.08), rgba(5, 5, 5, 0.42) 72%),
+    rgba(5, 5, 5, 0.24);
 }
 
 .content-video-foreground {
