@@ -5,6 +5,8 @@ const app = document.querySelector('#app');
 const basePath = getBasePath();
 // Replace this file to change the scroll-controlled opening video.
 const heroVideoSrc = getHeroVideoSrc();
+// Replace this file to change the scroll-reactive background behind site content.
+const contentBackgroundVideoSrc = getContentBackgroundVideoSrc();
 // Replace this file to change the exact PDF shown in the Portfolio category.
 const portfolioPdfSrc = getPortfolioPdfSrc();
 const mainCategories = [
@@ -39,6 +41,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 let portfolio = null;
 let activeSectionId = null;
 let destroyScrollHero = null;
+let destroyContentBackgroundVideo = null;
 let activePdfRenderController = null;
 
 init();
@@ -93,6 +96,8 @@ function normalizeSection(section) {
 function renderRoute() {
   destroyScrollHero?.();
   destroyScrollHero = null;
+  destroyContentBackgroundVideo?.();
+  destroyContentBackgroundVideo = null;
   activePdfRenderController?.abort();
   activePdfRenderController = null;
 
@@ -141,15 +146,28 @@ function renderHome(activeCategory = null) {
           <h1 id="home-title" class="scroll-hero-brand">Dor Fellous</h1>
         </div>
       </section>
-      <section class="home-hero" aria-label="Site categories">
-        <nav class="main-category-menu reveal-item" aria-label="Main categories">
-          ${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}
-        </nav>
-        ${activeCategory ? renderMainCategoryContent(activeCategory) : ''}
+      <section class="content-video-region" data-content-video-region aria-label="Site categories">
+        <div class="content-background-video-layer" aria-hidden="true">
+          <video
+            class="content-background-video"
+            src="${contentBackgroundVideoSrc}"
+            muted
+            playsinline
+            preload="auto"
+          ></video>
+          <div class="content-background-scrim"></div>
+        </div>
+        <div class="content-video-foreground home-hero">
+          <nav class="main-category-menu reveal-item" aria-label="Main categories">
+            ${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}
+          </nav>
+          ${activeCategory ? renderMainCategoryContent(activeCategory) : ''}
+        </div>
       </section>
     </main>
   `;
   destroyScrollHero = initScrollVideoHero();
+  destroyContentBackgroundVideo = initContentBackgroundVideo();
   bindMainCategoryButtons();
 }
 
@@ -190,6 +208,82 @@ function initScrollVideoHero() {
     section.style.setProperty('--brand-opacity', brandOpacity.toFixed(3));
     section.style.setProperty('--brand-lift', `${((1 - brandOpacity) * 12).toFixed(2)}px`);
     section.style.setProperty('--end-fade', endFade.toFixed(3));
+  };
+
+  const requestUpdate = () => {
+    if (!rafId) rafId = window.requestAnimationFrame(update);
+  };
+
+  const onMetadata = () => {
+    metadataReady = true;
+    unlockVideoSeeking();
+    requestUpdate();
+  };
+
+  const unlockVideoSeeking = () => {
+    if (hasUnlockedSeek) return;
+    hasUnlockedSeek = true;
+
+    const playAttempt = video.play();
+    if (playAttempt?.then) {
+      playAttempt
+        .then(() => {
+          video.pause();
+          requestUpdate();
+        })
+        .catch(() => {
+          requestUpdate();
+        });
+    }
+  };
+
+  video.addEventListener('loadedmetadata', onMetadata);
+  video.addEventListener('canplay', onMetadata);
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate);
+  video.load();
+  requestUpdate();
+
+  return () => {
+    if (rafId) window.cancelAnimationFrame(rafId);
+    video.removeEventListener('loadedmetadata', onMetadata);
+    video.removeEventListener('canplay', onMetadata);
+    window.removeEventListener('scroll', requestUpdate);
+    window.removeEventListener('resize', requestUpdate);
+  };
+}
+
+function initContentBackgroundVideo() {
+  const region = document.querySelector('[data-content-video-region]');
+  const video = document.querySelector('.content-background-video');
+  if (!region || !video) return null;
+
+  const fallbackDuration = 10;
+  let metadataReady = Number.isFinite(video.duration) && video.duration > 0;
+  let rafId = 0;
+  let hasUnlockedSeek = false;
+
+  video.pause();
+  video.muted = true;
+  video.playsInline = true;
+
+  const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+  const getDuration = () => (metadataReady && Number.isFinite(video.duration) ? video.duration : fallbackDuration);
+
+  const update = () => {
+    rafId = 0;
+    const scrollableDistance = Math.max(1, region.offsetHeight - window.innerHeight);
+    const progress = clamp(-region.getBoundingClientRect().top / scrollableDistance);
+    const targetTime = progress * getDuration();
+
+    if (metadataReady && Math.abs(video.currentTime - targetTime) > 0.025) {
+      unlockVideoSeeking();
+      try {
+        video.currentTime = targetTime;
+      } catch {
+        // Some mobile browsers reject seeks until the video is fully ready.
+      }
+    }
   };
 
   const requestUpdate = () => {
@@ -588,6 +682,12 @@ function getBasePath() {
 function getHeroVideoSrc() {
   if (import.meta.env?.BASE_URL) return `${basePath}assets/video/0428.mp4`;
   return './0428.mp4';
+}
+
+function getContentBackgroundVideoSrc() {
+  const encodedVideoName = 'Kling%203_0%20Pro%20Slow%20cinematic%20push%20downward%20into%20a%20wet%20forest%20soi.mp4';
+  if (import.meta.env?.BASE_URL) return `${basePath}assets/video/${encodedVideoName}`;
+  return `./public/assets/video/${encodedVideoName}`;
 }
 
 function getPortfolioPdfSrc() {
