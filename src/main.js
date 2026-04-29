@@ -36,6 +36,8 @@ const pdfSupportPath = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
 const maxPdfSliceHeight = 1400;
 const maxPdfRenderScale = 2;
 const scrubEndSafetySeconds = 0.06;
+const heroRequiredBufferRatio = 0.95;
+const backgroundRequiredBufferRatio = 0.16;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
@@ -108,19 +110,32 @@ function initLoadingScreen() {
       window.setTimeout(() => loader.remove(), 720);
     }, 520);
   };
+  const setMessage = (message) => {
+    text.textContent = message;
+  };
 
-  return { setProgress, complete };
+  return { setProgress, setMessage, complete };
 }
 
 async function waitForInitialAssets(loader) {
   const requiredAssets = Promise.allSettled([
-    waitForVideoReadiness(document.querySelector('.scroll-hero-video'), {
+    waitForVideoBuffer(document.querySelector('.scroll-hero-video'), {
       label: 'Opening hero video',
+      targetBufferRatio: heroRequiredBufferRatio,
+      timeoutMs: 45000,
+      progressBase: 0.24,
+      progressSpan: 0.5,
+      loader,
       seekProbe: true,
-    }).then(() => loader.setProgress(0.58)),
-    waitForVideoReadiness(document.querySelector('.content-background-video'), {
+    }).then(() => loader.setProgress(0.74)),
+    waitForVideoBuffer(document.querySelector('.content-background-video'), {
       label: 'Content background video',
-    }).then(() => loader.setProgress(0.76)),
+      targetBufferRatio: backgroundRequiredBufferRatio,
+      timeoutMs: 18000,
+      progressBase: 0.74,
+      progressSpan: 0.1,
+      loader,
+    }).then(() => loader.setProgress(0.84)),
     withTimeout(
       waitForPortfolioDocument(),
       4500,
@@ -128,15 +143,24 @@ async function waitForInitialAssets(loader) {
     ).then(() => loader.setProgress(0.9)),
   ]);
 
-  await withTimeout(requiredAssets, 24000, 'Initial visual assets took too long to preload.');
+  await withTimeout(requiredAssets, 52000, 'Initial visual assets took too long to preload.');
 }
 
-function waitForVideoReadiness(video, options = {}) {
+function waitForVideoBuffer(video, options = {}) {
   if (!video) return Promise.resolve();
-  const { label = 'Video', seekProbe = false } = options;
+  const {
+    label = 'Video',
+    targetBufferRatio = 0.2,
+    timeoutMs = 18000,
+    progressBase = 0,
+    progressSpan = 0,
+    loader = null,
+    seekProbe = false,
+  } = options;
   video.autoplay = false;
   video.controls = false;
   video.loop = false;
+  video.preload = 'auto';
   video.muted = true;
   video.playsInline = true;
   try {
@@ -146,16 +170,22 @@ function waitForVideoReadiness(video, options = {}) {
   }
   video.pause();
 
-  if (video.readyState >= 2 && Number.isFinite(video.duration) && video.duration > 0) {
-    return seekProbe ? probeVideoSeek(video, label) : Promise.resolve();
-  }
-
   return new Promise((resolve) => {
     let settled = false;
-    const done = async () => {
+    let warmupStarted = false;
+    const updateProgress = () => {
+      const bufferRatio = getVideoBufferedRatio(video);
+      const scaledProgress = targetBufferRatio > 0
+        ? Math.min(1, bufferRatio / targetBufferRatio)
+        : 1;
+      loader?.setProgress(progressBase + progressSpan * scaledProgress);
+      return bufferRatio;
+    };
+    const done = async (reason) => {
       if (settled) return;
       settled = true;
       cleanup();
+      const bufferRatio = updateProgress();
       if (seekProbe) await probeVideoSeek(video, label);
       try {
         video.currentTime = 0;
@@ -163,36 +193,88 @@ function waitForVideoReadiness(video, options = {}) {
         // Leave the first available frame if the browser blocks early seeking.
       }
       video.pause();
+      if (reason === 'timeout') {
+        loader?.setMessage('Connection is slow');
+        console.warn(
+          `${label} continued after buffering ${(bufferRatio * 100).toFixed(1)}% ` +
+            `of the target ${(targetBufferRatio * 100).toFixed(0)}%.`,
+          video.currentSrc || video.src,
+        );
+      }
       resolve();
     };
     const onData = () => {
-      if (video.readyState >= 2 && Number.isFinite(video.duration) && video.duration > 0) done();
+      const bufferRatio = updateProgress();
+      if (!warmupStarted && video.readyState >= 2) {
+        warmupStarted = true;
+        const playAttempt = video.play();
+        if (playAttempt?.then) {
+          playAttempt
+            .then(() => {
+              video.pause();
+            })
+            .catch(() => {
+              video.pause();
+            });
+        }
+      }
+      if (
+        video.readyState >= 2 &&
+        Number.isFinite(video.duration) &&
+        video.duration > 0 &&
+        bufferRatio >= targetBufferRatio
+      ) {
+        done('buffered');
+      }
     };
     const onError = () => {
       console.warn(`${label} preload fell back before full readiness.`, video.currentSrc || video.src);
-      done();
+      done('error');
     };
     const cleanup = () => {
       window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
       video.removeEventListener('loadedmetadata', onData);
       video.removeEventListener('loadeddata', onData);
+      video.removeEventListener('progress', onData);
       video.removeEventListener('canplay', onData);
       video.removeEventListener('canplaythrough', onData);
+      video.removeEventListener('suspend', onData);
+      video.removeEventListener('stalled', onData);
       video.removeEventListener('error', onError);
     };
     const timeoutId = window.setTimeout(() => {
-      console.warn(`${label} preload timed out.`, video.currentSrc || video.src);
-      done();
-    }, seekProbe ? 15000 : 11000);
+      done('timeout');
+    }, timeoutMs);
+    const intervalId = window.setInterval(onData, 250);
 
     video.addEventListener('loadedmetadata', onData);
     video.addEventListener('loadeddata', onData);
+    video.addEventListener('progress', onData);
     video.addEventListener('canplay', onData);
     video.addEventListener('canplaythrough', onData);
+    video.addEventListener('suspend', onData);
+    video.addEventListener('stalled', onData);
     video.addEventListener('error', onError);
     video.load();
     onData();
   });
+}
+
+function getVideoBufferedRatio(video) {
+  const duration = Number.isFinite(video.duration) ? video.duration : 0;
+  if (!duration || !video.buffered?.length) return 0;
+
+  let contiguousEnd = 0;
+  for (let index = 0; index < video.buffered.length; index += 1) {
+    const start = video.buffered.start(index);
+    const end = video.buffered.end(index);
+    if (start <= contiguousEnd + 0.35) {
+      contiguousEnd = Math.max(contiguousEnd, end);
+    }
+  }
+
+  return Math.min(1, Math.max(0, contiguousEnd / duration));
 }
 
 async function probeVideoSeek(video, label) {
