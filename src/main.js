@@ -1032,12 +1032,13 @@ function getBasePath() {
 }
 
 function getHeroVideoSrc() {
-  if (import.meta.env?.BASE_URL) return `${basePath}assets/video/0428.mp4`;
-  return './0428.mp4';
+  const encodedVideoName = 'hero_scroll_optimized_1080.mp4';
+  if (import.meta.env?.BASE_URL) return `${basePath}assets/video/${encodedVideoName}`;
+  return `./public/assets/video/${encodedVideoName}`;
 }
 
 function getContentBackgroundVideoSrc() {
-  const encodedVideoName = 'Kling%203_0%20Pro%20Slow%20cinematic%20push%20downward%20into%20a%20wet%20forest%20soi.mp4';
+  const encodedVideoName = 'Background%20opmtimized%20.mp4';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/video/${encodedVideoName}`;
   return `./public/assets/video/${encodedVideoName}`;
 }
