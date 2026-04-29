@@ -43,13 +43,169 @@ let activeSectionId = null;
 let destroyScrollHero = null;
 let destroyContentBackgroundVideo = null;
 let activePdfRenderController = null;
+let routeListenerBound = false;
 
 init();
 
 async function init() {
-  portfolio = await loadPortfolio();
+  const loader = initLoadingScreen();
+
+  try {
+    loader.setProgress(0.08);
+    portfolio = await loadPortfolio();
+    loader.setProgress(0.24);
+    bindRouteListener();
+    renderRoute();
+    await waitForInitialAssets(loader);
+  } catch (error) {
+    console.warn('Initial site loading finished with a fallback.', error);
+    if (!portfolio) portfolio = { sections: [], shop: {} };
+    bindRouteListener();
+    renderRoute();
+  } finally {
+    loader.complete();
+  }
+}
+
+function bindRouteListener() {
+  if (routeListenerBound) return;
+  routeListenerBound = true;
   window.addEventListener('hashchange', renderRoute);
-  renderRoute();
+}
+
+function initLoadingScreen() {
+  const loader = document.createElement('div');
+  loader.className = 'site-loader';
+  loader.innerHTML = `
+    <div class="site-loader__content" role="status" aria-live="polite">
+      <div class="site-loader__ring" aria-hidden="true">
+        <span></span>
+      </div>
+      <p class="site-loader__text">Entering Dor Fellous</p>
+    </div>
+  `;
+  document.body.prepend(loader);
+  document.body.classList.add('is-loading');
+
+  let currentProgress = 0;
+  const ring = loader.querySelector('.site-loader__ring');
+  const text = loader.querySelector('.site-loader__text');
+
+  const setProgress = (value) => {
+    currentProgress = Math.max(currentProgress, Math.min(1, value));
+    ring.style.setProperty('--loader-progress', `${currentProgress * 100}%`);
+  };
+
+  const complete = () => {
+    setProgress(1);
+    text.textContent = 'Dor Fellous';
+    window.setTimeout(() => {
+      loader.classList.add('is-complete');
+      document.body.classList.remove('is-loading');
+      window.setTimeout(() => loader.remove(), 720);
+    }, 520);
+  };
+
+  return { setProgress, complete };
+}
+
+async function waitForInitialAssets(loader) {
+  const requiredAssets = Promise.allSettled([
+    waitForVideoReadiness(document.querySelector('.scroll-hero-video')).then(() => loader.setProgress(0.5)),
+    waitForVideoReadiness(document.querySelector('.content-background-video')).then(() => loader.setProgress(0.72)),
+    waitForPortfolioDocument().then(() => loader.setProgress(0.9)),
+  ]);
+
+  await withTimeout(requiredAssets, 12000, 'Initial visual assets took too long to preload.');
+}
+
+function waitForVideoReadiness(video) {
+  if (!video) return Promise.resolve();
+  video.autoplay = false;
+  video.controls = false;
+  video.loop = false;
+  video.muted = true;
+  video.playsInline = true;
+  try {
+    video.currentTime = 0;
+  } catch {
+    // Metadata may not be available yet.
+  }
+  video.pause();
+
+  if (video.readyState >= 3 && Number.isFinite(video.duration) && video.duration > 0) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      try {
+        video.currentTime = 0;
+      } catch {
+        // Leave the first available frame if the browser blocks early seeking.
+      }
+      video.pause();
+      resolve();
+    };
+    const onData = () => {
+      if (video.readyState >= 2 && Number.isFinite(video.duration) && video.duration > 0) done();
+    };
+    const onError = () => {
+      console.warn('Video preload fell back before full readiness.', video.currentSrc || video.src);
+      done();
+    };
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      video.removeEventListener('loadedmetadata', onData);
+      video.removeEventListener('loadeddata', onData);
+      video.removeEventListener('canplay', onData);
+      video.removeEventListener('canplaythrough', onData);
+      video.removeEventListener('error', onError);
+    };
+    const timeoutId = window.setTimeout(() => {
+      console.warn('Video preload timed out.', video.currentSrc || video.src);
+      done();
+    }, 8000);
+
+    video.addEventListener('loadedmetadata', onData);
+    video.addEventListener('loadeddata', onData);
+    video.addEventListener('canplay', onData);
+    video.addEventListener('canplaythrough', onData);
+    video.addEventListener('error', onError);
+    video.load();
+    onData();
+  });
+}
+
+async function waitForPortfolioDocument() {
+  try {
+    const pdf = await pdfjsLib.getDocument({
+      url: portfolioPdfSrc,
+      cMapUrl: `${pdfSupportPath}cmaps/`,
+      cMapPacked: true,
+      standardFontDataUrl: `${pdfSupportPath}standard_fonts/`,
+      wasmUrl: `${pdfSupportPath}wasm/`,
+    }).promise;
+    await pdf.getPage(1);
+  } catch (error) {
+    console.warn('Portfolio PDF preload fell back.', error);
+  }
+}
+
+function withTimeout(promise, timeoutMs, warning) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => {
+      window.setTimeout(() => {
+        console.warn(warning);
+        resolve();
+      }, timeoutMs);
+    }),
+  ]);
 }
 
 async function loadPortfolio() {
