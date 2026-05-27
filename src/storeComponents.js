@@ -44,18 +44,100 @@ export function CollectionGrid({ category, categories, products, filters }) {
 }
 
 export function ProductCard(product) {
-  const soldOut = !product.available;
-  const price = soldOut ? 'Sold out' : formatPrice(product.price, product.currency);
+  const status = getProductStatus(product);
+  const price = status.value === 'sold-out' ? 'Sold out' : formatPrice(product.price, product.currency);
   return `
     <article class="store-product-card">
-      <a href="#/store/product/${escapeHtml(product.id)}" aria-label="${escapeHtml(product.name)}">
+      <a href="#/store/${escapeHtml(product.category)}/${escapeHtml(product.id)}" aria-label="${escapeHtml(product.name)}">
         ${ProductMedia(product)}
         <div class="store-product-meta">
           <h3>${escapeHtml(product.name)}</h3>
-          <p class="${soldOut ? 'is-sold-out' : ''}">${price}</p>
+          <p class="${status.value === 'sold-out' ? 'is-sold-out' : ''}">${price}</p>
         </div>
       </a>
     </article>
+  `;
+}
+
+export function ProductDetailPage({ product, category, categories }) {
+  if (!product || !category) {
+    return ProductNotFoundPage({ categories });
+  }
+
+  return `
+    <article class="category-content store-shell store-product-detail reveal-item" aria-labelledby="store-product-title">
+      <nav class="store-subnav" aria-label="Store navigation">
+        <a href="#/store">Store</a>
+        ${categories.map((item) => `<a href="#/store/${escapeHtml(item.id)}">${escapeHtml(item.title)}</a>`).join('')}
+      </nav>
+      <a class="store-back-link" href="#/store/${escapeHtml(category.id)}">Back to ${escapeHtml(category.title)}</a>
+      <div class="store-product-detail-layout">
+        ${ProductGallery(product)}
+        ${ProductInfo(product, category)}
+      </div>
+    </article>
+  `;
+}
+
+export function ProductGallery(product) {
+  const images = product.images?.length ? product.images : [null, null, null];
+  return `
+    <section class="store-product-gallery" aria-label="${escapeHtml(product.name)} image gallery">
+      ${images.map((image, index) => {
+        if (image) {
+          return `
+            <figure class="store-product-gallery-item">
+              <img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt || `${product.name} view ${index + 1}`)}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+            </figure>
+          `;
+        }
+
+        return `
+          <figure class="store-product-gallery-item store-visual--${escapeHtml(product.visualTone || 'void')}">
+            <span>${escapeHtml(index === 0 ? product.name : `View ${index + 1}`)}</span>
+          </figure>
+        `;
+      }).join('')}
+    </section>
+  `;
+}
+
+export function ProductInfo(product, category) {
+  const status = getProductStatus(product);
+  const tags = product.tags?.length ? product.tags.join(' / ') : 'None';
+  return `
+    <section class="store-product-info" aria-label="${escapeHtml(product.name)} details">
+      <p class="section-count">${escapeHtml(category.title)}</p>
+      <h2 id="store-product-title">${escapeHtml(product.name)}</h2>
+      <div class="store-product-purchase-line">
+        <span>${status.value === 'sold-out' ? 'Sold out' : formatPrice(product.price, product.currency)}</span>
+        <span>${escapeHtml(status.label)}</span>
+      </div>
+      <p class="store-product-short">${escapeHtml(product.shortDescription || '')}</p>
+      <dl class="store-product-specs">
+        ${ProductSpec('Full description', product.fullDescription)}
+        ${ProductSpec('Materials', product.materials?.join(', '))}
+        ${ProductSpec('Dimensions', product.dimensions)}
+        ${ProductSpec('Category', category.title)}
+        ${ProductSpec('Collection / Tags', tags)}
+      </dl>
+    </section>
+  `;
+}
+
+export function ProductNotFoundPage({ categories }) {
+  return `
+    <section class="category-content store-shell store-product-not-found reveal-item" aria-labelledby="store-product-not-found-title">
+      <nav class="store-subnav" aria-label="Store navigation">
+        <a href="#/store">Store</a>
+        ${categories.map((item) => `<a href="#/store/${escapeHtml(item.id)}">${escapeHtml(item.title)}</a>`).join('')}
+      </nav>
+      <header class="store-heading store-heading--collection">
+        <p class="section-count">Store</p>
+        <h2 id="store-product-not-found-title">Product not found</h2>
+      </header>
+      <p class="store-empty-state">This object is no longer available in the current store archive.</p>
+    </section>
   `;
 }
 
@@ -132,6 +214,22 @@ function ProductMedia(product) {
       <span>${escapeHtml(product.category)}</span>
     </figure>
   `;
+}
+
+function ProductSpec(label, value) {
+  return `
+    <div>
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(value || 'Not specified')}</dd>
+    </div>
+  `;
+}
+
+function getProductStatus(product) {
+  const status = product.status || (product.available ? 'available' : 'sold-out');
+  if (status === 'made-to-order') return { value: status, label: 'Made to order' };
+  if (status === 'sold-out') return { value: status, label: 'Sold out' };
+  return { value: 'available', label: 'Available' };
 }
 
 function EmptyStoreState() {
