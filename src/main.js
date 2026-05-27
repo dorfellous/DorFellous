@@ -1,5 +1,5 @@
 import { fractureText, initScrollReveals, resetScrollReveals } from './animations.js';
-import { StoreLanding, CollectionGrid } from './storeComponents.js';
+import { StoreLanding, CollectionGrid, ProductDetailPage } from './storeComponents.js';
 import { storeCategories, storeProducts } from './storeData.js';
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
 
@@ -432,9 +432,12 @@ function getRoute() {
   const params = Object.fromEntries(new URLSearchParams(queryString));
   if (path === 'store') return { type: 'category', id: 'store', storeView: 'landing', params };
   if (path.startsWith('store/')) {
-    const storePath = path.replace('store/', '');
-    if (storeCategories.some((category) => category.id === storePath)) {
-      return { type: 'category', id: 'store', storeView: 'collection', collectionId: storePath, params };
+    const [categoryId, productId] = path.replace('store/', '').split('/');
+    if (storeCategories.some((category) => category.id === categoryId)) {
+      if (productId) {
+        return { type: 'category', id: 'store', storeView: 'product', collectionId: categoryId, productId, params };
+      }
+      return { type: 'category', id: 'store', storeView: 'collection', collectionId: categoryId, params };
     }
     return { type: 'category', id: 'store', storeView: 'landing', params };
   }
@@ -727,6 +730,18 @@ function renderMainCategoryContent(category, route = {}) {
 }
 
 function renderStoreCategory(route = {}) {
+  if (route.storeView === 'product') {
+    const category = storeCategories.find((item) => item.id === route.collectionId);
+    const product = storeProducts.find((item) =>
+      item.id === route.productId && item.category === route.collectionId,
+    );
+    return ProductDetailPage({
+      product,
+      category,
+      categories: storeCategories,
+    });
+  }
+
   if (route.storeView === 'collection') {
     const category = storeCategories.find((item) => item.id === route.collectionId);
     const filters = normalizeStoreFilters(route.params);
