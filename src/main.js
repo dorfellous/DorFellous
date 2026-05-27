@@ -1,4 +1,6 @@
 import { fractureText, initScrollReveals, resetScrollReveals } from './animations.js';
+import { StoreLanding, CollectionGrid, ArchiveCollections } from './storeComponents.js';
+import { storeCategories, storeProducts, archiveCollections } from './storeData.js';
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
 
 const app = document.querySelector('#app');
@@ -409,11 +411,11 @@ function renderRoute() {
 
   const route = getRoute();
   if (route.type === 'category') {
-    renderHome(route.id);
+    renderHome(route.id, route);
   } else if (route.type === 'section') {
     renderSection(route.id);
   } else if (route.type === 'shop') {
-    renderHome('store');
+    renderHome('store', route);
   } else {
     renderHome();
   }
@@ -426,16 +428,29 @@ function renderRoute() {
 
 function getRoute() {
   const hash = window.location.hash.replace(/^#\/?/, '');
-  if (!hash) return { type: 'home' };
-  if (mainCategories.some((category) => category.id === hash)) {
-    return { type: 'category', id: hash };
+  const [path, queryString = ''] = hash.split('?');
+  const params = Object.fromEntries(new URLSearchParams(queryString));
+  if (path === 'store') return { type: 'category', id: 'store', storeView: 'landing', params };
+  if (path.startsWith('store/')) {
+    const storePath = path.replace('store/', '');
+    if (storePath === 'archive') {
+      return { type: 'category', id: 'store', storeView: 'archive', params };
+    }
+    if (storeCategories.some((category) => category.id === storePath && category.id !== 'archive')) {
+      return { type: 'category', id: 'store', storeView: 'collection', collectionId: storePath, params };
+    }
+    return { type: 'category', id: 'store', storeView: 'landing', params };
   }
-  if (hash === 'shop') return { type: 'shop' };
-  if (hash.startsWith('section/')) return { type: 'section', id: hash.replace('section/', '') };
+  if (!hash) return { type: 'home' };
+  if (mainCategories.some((category) => category.id === path)) {
+    return { type: 'category', id: path, params };
+  }
+  if (path === 'shop') return { type: 'shop', storeView: 'landing', params };
+  if (path.startsWith('section/')) return { type: 'section', id: path.replace('section/', '') };
   return { type: 'home' };
 }
 
-function renderHome(activeCategory = null) {
+function renderHome(activeCategory = null, route = {}) {
   activeSectionId = activeCategory;
   app.innerHTML = `
     <main class="home-shell" aria-labelledby="home-title">
@@ -467,7 +482,7 @@ function renderHome(activeCategory = null) {
           <nav class="main-category-menu reveal-item" aria-label="Main categories">
             ${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}
           </nav>
-          ${activeCategory ? renderMainCategoryContent(activeCategory) : ''}
+          ${activeCategory ? renderMainCategoryContent(activeCategory, route) : ''}
         </div>
       </section>
     </main>
@@ -475,6 +490,7 @@ function renderHome(activeCategory = null) {
   destroyScrollHero = initScrollVideoHero();
   destroyContentBackgroundVideo = initContentBackgroundVideo();
   bindMainCategoryButtons();
+  bindStoreControls(route);
 }
 
 function initScrollVideoHero() {
@@ -705,12 +721,35 @@ function bindMainCategoryButtons() {
   });
 }
 
-function renderMainCategoryContent(category) {
+function renderMainCategoryContent(category, route = {}) {
   if (category === 'about') return renderAboutCategory();
   if (category === 'portfolio') return renderPortfolioCategory();
   if (category === 'press') return renderEmptyCategory('Press', 'Press coming soon');
-  if (category === 'store') return renderEmptyCategory('Store', portfolio.shop?.status || 'Store coming soon');
+  if (category === 'store') return renderStoreCategory(route);
   return '';
+}
+
+function renderStoreCategory(route = {}) {
+  if (route.storeView === 'archive') {
+    const filters = normalizeStoreFilters(route.params);
+    return ArchiveCollections({
+      archiveGroups: archiveCollections,
+      filteredProducts: getFilteredStoreProducts({ ...filters, category: null }),
+      filters,
+    });
+  }
+
+  if (route.storeView === 'collection') {
+    const category = storeCategories.find((item) => item.id === route.collectionId);
+    const filters = normalizeStoreFilters(route.params);
+    return CollectionGrid({
+      category,
+      products: getFilteredStoreProducts({ ...filters, category: route.collectionId }),
+      filters,
+    });
+  }
+
+  return StoreLanding({ categories: storeCategories });
 }
 
 function renderAboutCategory() {
@@ -914,13 +953,92 @@ function renderShop() {
   app.innerHTML = `
     <main class="section-shell">
       ${siteHeader()}
-      <section class="shop-page reveal-item" aria-labelledby="shop-title">
-        <p class="section-count">Store foundation</p>
-        <h1 id="shop-title">Shop</h1>
-        <p>Shop coming soon</p>
-      </section>
+      ${StoreLanding({ categories: storeCategories })}
     </main>
   `;
+  bindStoreControls({ storeView: 'landing', params: {} });
+}
+
+function bindStoreControls(route = {}) {
+  const form = document.querySelector('[data-store-filter-form]');
+  if (!form) return;
+
+  const updateStoreHash = () => {
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    const availability = formData.get('availability');
+    const from = formData.get('from');
+    const to = formData.get('to');
+    const sort = formData.get('sort');
+
+    if (availability && availability !== 'all') params.set('availability', availability);
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    if (sort && sort !== 'featured') params.set('sort', sort);
+    if (route.params?.tag) params.set('tag', route.params.tag);
+
+    const path = route.storeView === 'collection' && route.collectionId
+      ? `store/${route.collectionId}`
+      : 'store/archive';
+    window.location.hash = `#/${path}${params.toString() ? `?${params.toString()}` : ''}`;
+  };
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    updateStoreHash();
+  });
+
+  form.querySelectorAll('input[type="radio"], select, input[type="number"]').forEach((control) => {
+    control.addEventListener('change', updateStoreHash);
+  });
+}
+
+function normalizeStoreFilters(params = {}) {
+  return {
+    availability: params.availability || 'all',
+    from: params.from || '',
+    to: params.to || '',
+    sort: params.sort || 'featured',
+    tag: params.tag || '',
+  };
+}
+
+function getFilteredStoreProducts(filters = {}) {
+  const from = Number.parseFloat(filters.from);
+  const to = Number.parseFloat(filters.to);
+  const hasFrom = Number.isFinite(from);
+  const hasTo = Number.isFinite(to);
+
+  return storeProducts
+    .filter((product) => !filters.category || product.category === filters.category)
+    .filter((product) => !filters.tag || product.tags?.includes(filters.tag))
+    .filter((product) => {
+      if (filters.availability === 'in-stock') return product.available;
+      if (filters.availability === 'out-of-stock') return !product.available;
+      return true;
+    })
+    .filter((product) => {
+      if (!Number.isFinite(product.price)) return true;
+      if (hasFrom && product.price < from) return false;
+      if (hasTo && product.price > to) return false;
+      return true;
+    })
+    .sort((a, b) => sortStoreProducts(a, b, filters.sort));
+}
+
+function sortStoreProducts(a, b, sort = 'featured') {
+  if (sort === 'best-selling') return (a.bestSelling || 999) - (b.bestSelling || 999);
+  if (sort === 'az') return a.name.localeCompare(b.name);
+  if (sort === 'za') return b.name.localeCompare(a.name);
+  if (sort === 'price-low-high') return getProductPrice(a) - getProductPrice(b);
+  if (sort === 'price-high-low') return getProductPrice(b) - getProductPrice(a);
+  if (sort === 'date-old-new') return new Date(a.date) - new Date(b.date);
+  if (sort === 'date-new-old') return new Date(b.date) - new Date(a.date);
+  return (a.featured || 999) - (b.featured || 999);
+}
+
+function getProductPrice(product) {
+  return Number.isFinite(product.price) ? product.price : Number.POSITIVE_INFINITY;
 }
 
 function siteHeader() {
