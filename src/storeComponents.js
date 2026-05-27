@@ -10,8 +10,6 @@ const storeSortOptions = [
 ];
 
 export function StoreLanding({ categories }) {
-  const visibleCategories = categories.filter((category) => category.id !== 'archive');
-  const archiveCategory = categories.find((category) => category.id === 'archive');
   return `
     <section class="category-content store-shell store-shell--landing reveal-item" aria-labelledby="store-title">
       <header class="store-heading">
@@ -19,24 +17,19 @@ export function StoreLanding({ categories }) {
         <h2 id="store-title">Store</h2>
       </header>
       <div class="store-category-grid" aria-label="Store categories">
-        ${visibleCategories.map(StoreCategoryTile).join('')}
-        ${archiveCategory ? StoreCategoryTile(archiveCategory) : ''}
+        ${categories.map(StoreCategoryTile).join('')}
       </div>
     </section>
   `;
 }
 
-export function CollectionGrid({ category, products, filters }) {
-  const title = category?.title || 'Archive';
+export function CollectionGrid({ category, categories, products, filters }) {
+  const title = category?.title || 'Store';
   return `
     <section class="category-content store-shell store-shell--collection reveal-item" aria-labelledby="store-collection-title">
       <nav class="store-subnav" aria-label="Store navigation">
         <a href="#/store">Store</a>
-        <a href="#/store/footwear">Footwear</a>
-        <a href="#/store/bags">Bags</a>
-        <a href="#/store/jewelry">Jewelry</a>
-        <a href="#/store/accessories">Accessories</a>
-        <a href="#/store/archive">Archive</a>
+        ${categories.map((item) => `<a href="#/store/${escapeHtml(item.id)}">${escapeHtml(item.title)}</a>`).join('')}
       </nav>
       <header class="store-heading store-heading--collection">
         <p class="section-count">${escapeHtml(filters.tag ? `Filtered / ${filters.tag}` : 'Collection')}</p>
@@ -110,38 +103,6 @@ export function FilterSortBar(filters) {
   `;
 }
 
-export function ArchiveCollections({ archiveGroups, filteredProducts, filters }) {
-  return `
-    <section class="category-content store-shell store-shell--archive reveal-item" aria-labelledby="store-archive-title">
-      <nav class="store-subnav" aria-label="Store navigation">
-        <a href="#/store">Store</a>
-        <a href="#/store/footwear">Footwear</a>
-        <a href="#/store/bags">Bags</a>
-        <a href="#/store/jewelry">Jewelry</a>
-        <a href="#/store/accessories">Accessories</a>
-      </nav>
-      <header class="store-heading store-heading--collection">
-        <p class="section-count">Archive</p>
-        <h2 id="store-archive-title">Archive</h2>
-      </header>
-      <div class="store-archive-groups">
-        ${archiveGroups.map(ArchiveGroup).join('')}
-      </div>
-      ${filters.tag ? `
-        <section class="store-archive-filtered" aria-labelledby="store-archive-filtered-title">
-          <header class="store-minor-heading">
-            <p class="section-count">Selection</p>
-            <h3 id="store-archive-filtered-title">${escapeHtml(filters.tag)}</h3>
-          </header>
-          <div class="store-product-grid">
-            ${filteredProducts.length ? filteredProducts.map(ProductCard).join('') : EmptyStoreState()}
-          </div>
-        </section>
-      ` : ''}
-    </section>
-  `;
-}
-
 function StoreCategoryTile(category) {
   return `
     <a class="store-category-tile" href="#/store/${escapeHtml(category.id)}">
@@ -151,19 +112,6 @@ function StoreCategoryTile(category) {
         <small>${escapeHtml(category.deck)}</small>
       </span>
     </a>
-  `;
-}
-
-function ArchiveGroup(group) {
-  return `
-    <section class="store-archive-group" aria-labelledby="archive-${slugify(group.group)}">
-      <h3 id="archive-${slugify(group.group)}">${escapeHtml(group.group)}</h3>
-      <div>
-        ${group.items.map((item) => `
-          <a href="${escapeHtml(item.href)}">${escapeHtml(item.title)}</a>
-        `).join('')}
-      </div>
-    </section>
   `;
 }
 
@@ -199,10 +147,6 @@ function formatPrice(price, currency = 'USD') {
     currency,
     maximumFractionDigits: 0,
   }).format(price);
-}
-
-function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 function escapeHtml(value) {
