@@ -1032,7 +1032,7 @@ function getBasePath() {
 }
 
 function getHeroVideoSrc() {
-  const encodedVideoName = 'hero_scroll_optimized_1080.mp4';
+  const encodedVideoName = 'VIDEO%20FOR%20WEBSITE%20READY%20.mp4';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/video/${encodedVideoName}`;
   return `./${encodedVideoName}`;
 }
