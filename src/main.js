@@ -1,6 +1,6 @@
 import { fractureText, initScrollReveals, resetScrollReveals } from './animations.js';
-import { StoreLanding, CollectionGrid, ArchiveCollections } from './storeComponents.js';
-import { storeCategories, storeProducts, archiveCollections } from './storeData.js';
+import { StoreLanding, CollectionGrid } from './storeComponents.js';
+import { storeCategories, storeProducts } from './storeData.js';
 import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
 
 const app = document.querySelector('#app');
@@ -433,10 +433,7 @@ function getRoute() {
   if (path === 'store') return { type: 'category', id: 'store', storeView: 'landing', params };
   if (path.startsWith('store/')) {
     const storePath = path.replace('store/', '');
-    if (storePath === 'archive') {
-      return { type: 'category', id: 'store', storeView: 'archive', params };
-    }
-    if (storeCategories.some((category) => category.id === storePath && category.id !== 'archive')) {
+    if (storeCategories.some((category) => category.id === storePath)) {
       return { type: 'category', id: 'store', storeView: 'collection', collectionId: storePath, params };
     }
     return { type: 'category', id: 'store', storeView: 'landing', params };
@@ -730,20 +727,12 @@ function renderMainCategoryContent(category, route = {}) {
 }
 
 function renderStoreCategory(route = {}) {
-  if (route.storeView === 'archive') {
-    const filters = normalizeStoreFilters(route.params);
-    return ArchiveCollections({
-      archiveGroups: archiveCollections,
-      filteredProducts: getFilteredStoreProducts({ ...filters, category: null }),
-      filters,
-    });
-  }
-
   if (route.storeView === 'collection') {
     const category = storeCategories.find((item) => item.id === route.collectionId);
     const filters = normalizeStoreFilters(route.params);
     return CollectionGrid({
       category,
+      categories: storeCategories,
       products: getFilteredStoreProducts({ ...filters, category: route.collectionId }),
       filters,
     });
@@ -979,7 +968,7 @@ function bindStoreControls(route = {}) {
 
     const path = route.storeView === 'collection' && route.collectionId
       ? `store/${route.collectionId}`
-      : 'store/archive';
+      : 'store';
     window.location.hash = `#/${path}${params.toString() ? `?${params.toString()}` : ''}`;
   };
 
