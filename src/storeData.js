@@ -51,7 +51,8 @@ export const defaultPayPalUrl = 'https://paypal.me/YOURNAME';
 
   You should not need to edit layout files to add or replace product images.
 */
-export const storeAssetRoot = `${import.meta.env.BASE_URL}assets/store`;
+const storeBasePath = import.meta.env?.BASE_URL || './public/';
+export const storeAssetRoot = `${storeBasePath}assets/store`;
 
 const checkoutOptionsByCategory = {
   jewelry: {
@@ -343,7 +344,6 @@ const rawStoreProducts = [
     price: 760,
     currency: 'USD',
     available: false,
-    status: 'sold-out',
     status: 'sold-out',
     shortDescription: 'A silver-toned interior fragment with reflective tension.',
     fullDescription: 'A room-scale study in miniature, made as an object that shifts between decor, artifact, and material sample.',
