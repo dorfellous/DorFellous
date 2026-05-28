@@ -53,6 +53,7 @@ export function ProductCard(product) {
         <div class="store-product-meta">
           <h3>${escapeHtml(product.name)}</h3>
           <p class="${status.value === 'sold-out' ? 'is-sold-out' : ''}">${price}</p>
+          <span class="store-card-buy-link">${status.value === 'sold-out' ? 'View archive' : 'Buy'}</span>
         </div>
       </a>
     </article>
@@ -76,6 +77,7 @@ export function ProductDetailPage({ product, category, categories }) {
         ${ProductInfo(product, category)}
       </div>
     </article>
+    ${CheckoutModal(product, category)}
   `;
 }
 
@@ -121,6 +123,111 @@ export function ProductInfo(product, category) {
         ${ProductSpec('Category', category.title)}
         ${ProductSpec('Collection / Tags', tags)}
       </dl>
+      ${ProductCheckoutAction(product)}
+    </section>
+  `;
+}
+
+export function CheckoutModal(product, category) {
+  const status = getProductStatus(product);
+  const sizes = product.checkoutOptions?.sizes?.length ? product.checkoutOptions.sizes : ['One size'];
+  const variations = product.checkoutOptions?.variations?.length ? product.checkoutOptions.variations : ['As shown'];
+  const price = status.value === 'sold-out' ? 'Sold out' : formatPrice(product.price, product.currency);
+
+  return `
+    <section
+      class="checkout-modal"
+      data-checkout-modal
+      data-product-id="${escapeHtml(product.id)}"
+      data-product-category="${escapeHtml(product.category)}"
+      data-paypal-url="${escapeHtml(product.paypalUrl || 'https://paypal.me/YOURNAME')}"
+      aria-hidden="true"
+    >
+      <div class="checkout-modal__backdrop" data-checkout-close></div>
+      <div class="checkout-modal__panel" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+        <button class="checkout-modal__close" type="button" data-checkout-close>Close</button>
+        <header class="checkout-modal__header">
+          <p class="section-count">Direct checkout</p>
+          <h2 id="checkout-title">Order Request</h2>
+          <p>${escapeHtml(product.name)} / ${escapeHtml(price)}</p>
+        </header>
+        <form class="checkout-form" data-checkout-form novalidate>
+          <div class="checkout-form__summary" aria-label="Selected product">
+            <label>
+              <span>Product</span>
+              <input name="productName" value="${escapeHtml(product.name)}" readonly>
+            </label>
+            <label>
+              <span>Price</span>
+              <input name="productPrice" value="${escapeHtml(price)}" readonly>
+            </label>
+          </div>
+          <div class="checkout-form__grid">
+            <label>
+              <span>Size</span>
+              <select name="size" required>
+                ${sizes.map((size) => `<option value="${escapeHtml(size)}">${escapeHtml(size)}</option>`).join('')}
+              </select>
+            </label>
+            <label>
+              <span>Color / Variation</span>
+              <select name="variation" required>
+                ${variations.map((variation) => `<option value="${escapeHtml(variation)}">${escapeHtml(variation)}</option>`).join('')}
+              </select>
+            </label>
+            <label>
+              <span>Quantity</span>
+              <input name="quantity" type="number" min="1" max="9" value="1" required>
+            </label>
+            <label>
+              <span>Full name</span>
+              <input name="fullName" autocomplete="name" required>
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" autocomplete="email" required>
+            </label>
+            <label>
+              <span>Phone number</span>
+              <input name="phone" type="tel" autocomplete="tel" required>
+            </label>
+            <label class="checkout-form__wide">
+              <span>Shipping address</span>
+              <input name="shippingAddress" autocomplete="street-address" required>
+            </label>
+            <label>
+              <span>City</span>
+              <input name="city" autocomplete="address-level2" required>
+            </label>
+            <label>
+              <span>Country</span>
+              <input name="country" autocomplete="country-name" required>
+            </label>
+            <label>
+              <span>Postal code</span>
+              <input name="postalCode" autocomplete="postal-code" required>
+            </label>
+            <label class="checkout-form__wide">
+              <span>Notes / Custom request</span>
+              <textarea name="notes" rows="4"></textarea>
+            </label>
+          </div>
+          <p class="checkout-form__message" data-checkout-message aria-live="polite"></p>
+          <div class="checkout-form__actions">
+            <button class="checkout-submit-button" type="submit">Save Order Details</button>
+            <a
+              class="checkout-paypal-button"
+              data-paypal-link
+              href="${escapeHtml(product.paypalUrl || 'https://paypal.me/YOURNAME')}"
+              target="_blank"
+              rel="noreferrer"
+              hidden
+            >
+              Continue to PayPal
+            </a>
+          </div>
+        </form>
+      </div>
     </section>
   `;
 }
@@ -213,6 +320,18 @@ function ProductMedia(product) {
     <figure class="store-product-media store-visual--${escapeHtml(product.visualTone || 'void')}">
       <span>${escapeHtml(product.category)}</span>
     </figure>
+  `;
+}
+
+function ProductCheckoutAction(product) {
+  const status = getProductStatus(product);
+  const soldOut = status.value === 'sold-out';
+  return `
+    <div class="store-product-buy-panel">
+      <button class="store-buy-button" type="button" data-checkout-trigger ${soldOut ? 'disabled' : ''}>
+        ${soldOut ? 'Sold out' : 'Buy'}
+      </button>
+    </div>
   `;
 }
 
