@@ -25,6 +25,27 @@ export const storeCategories = [
   },
 ];
 
+export const defaultPayPalUrl = 'https://paypal.me/YOURNAME';
+
+const checkoutOptionsByCategory = {
+  jewelry: {
+    sizes: ['One size', 'Custom sizing'],
+    variations: ['As shown', 'Silver', 'Bone', 'Skin'],
+  },
+  bags: {
+    sizes: ['One size'],
+    variations: ['As shown', 'Black', 'Silver hardware', 'Skin tone'],
+  },
+  'home-decor': {
+    sizes: ['One size'],
+    variations: ['As shown', 'Black', 'Bone', 'Silver'],
+  },
+  clothes: {
+    sizes: ['XS', 'S', 'M', 'L', 'Custom'],
+    variations: ['As shown', 'Black', 'Bone', 'Skin'],
+  },
+};
+
 export const storeProducts = [
   {
     id: 'spine-ring',
@@ -242,4 +263,13 @@ export const storeProducts = [
     tags: ['2024', 'bone'],
     visualTone: 'bone',
   },
-];
+].map((product) => ({
+  ...product,
+  paypalUrl: product.paypalUrl || defaultPayPalUrl,
+  checkoutOptions: {
+    sizes: ['One size'],
+    variations: ['As shown'],
+    ...(checkoutOptionsByCategory[product.category] || {}),
+    ...(product.checkoutOptions || {}),
+  },
+}));
