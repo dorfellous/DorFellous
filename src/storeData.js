@@ -51,7 +51,7 @@ export const defaultPayPalUrl = 'https://paypal.me/YOURNAME';
 
   You should not need to edit layout files to add or replace product images.
 */
-export const storeAssetRoot = './src/assets/store';
+export const storeAssetRoot = `${import.meta.env.BASE_URL}assets/store`;
 
 const checkoutOptionsByCategory = {
   jewelry: {
