@@ -22,3 +22,8 @@ Then connect the images in `src/storeData.js`:
 The `category` and `id` fields create the image path automatically, so replacing
 images only requires swapping files in the product folder or changing
 `imageFiles`.
+
+During `npm run dev` or `npm run build`, these files are copied into
+`public/assets/store/` so the live GitHub Pages site can load them at:
+
+`/DorFellous/assets/store/category-name/product-name/01.jpg`
