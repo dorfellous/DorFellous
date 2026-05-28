@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/sync-store-assets.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/sync-store-assets.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
