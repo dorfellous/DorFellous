@@ -27,6 +27,32 @@ export const storeCategories = [
 
 export const defaultPayPalUrl = 'https://paypal.me/YOURNAME';
 
+/*
+  PRODUCT UPLOAD GUIDE
+
+  1. Drop product images into:
+     src/assets/store/category-name/product-name/
+
+     Example:
+     src/assets/store/bags/alien-egg-bag-black/01.jpg
+     src/assets/store/bags/alien-egg-bag-black/02.jpg
+
+  2. Add or duplicate one product object inside rawStoreProducts below.
+
+  3. Use the same folder slug for the product id:
+     id: 'alien-egg-bag-black'
+     category: 'bags'
+
+  4. Connect images by listing file names only:
+     imageFiles: ['01.jpg', '02.jpg', 'detail.jpg']
+
+  5. To duplicate a product:
+     copy an existing object, change id/title/category/price/text/options/imageFiles/paypalUrl.
+
+  You should not need to edit layout files to add or replace product images.
+*/
+export const storeAssetRoot = './src/assets/store';
+
 const checkoutOptionsByCategory = {
   jewelry: {
     sizes: ['One size', 'Custom sizing'],
@@ -46,10 +72,51 @@ const checkoutOptionsByCategory = {
   },
 };
 
-export const storeProducts = [
+const productImage = (category, productId, fileName, alt = '') => ({
+  src: `${storeAssetRoot}/${category}/${productId}/${fileName}`,
+  alt,
+});
+
+const createProductGallery = (product) => {
+  if (product.imageGallery?.length) return product.imageGallery;
+  if (product.images?.length) return product.images;
+  if (!product.imageFiles?.length) return [];
+
+  return product.imageFiles.map((fileName, index) =>
+    productImage(
+      product.category,
+      product.id,
+      fileName,
+      `${product.title || product.name} view ${index + 1}`,
+    ),
+  );
+};
+
+const normalizeProduct = (product) => {
+  const title = product.title || product.name;
+  const checkoutOptions = {
+    sizes: ['One size'],
+    variations: ['As shown'],
+    ...(checkoutOptionsByCategory[product.category] || {}),
+    ...(product.checkoutOptions || {}),
+    ...(product.options || {}),
+  };
+
+  return {
+    ...product,
+    title,
+    name: title,
+    paypalUrl: product.paypalUrl || defaultPayPalUrl,
+    checkoutOptions,
+    imageGallery: createProductGallery({ ...product, title }),
+    images: createProductGallery({ ...product, title }),
+  };
+};
+
+const rawStoreProducts = [
   {
     id: 'spine-ring',
-    name: 'Spine Ring',
+    title: 'Spine Ring',
     category: 'jewelry',
     price: 340,
     currency: 'USD',
@@ -64,10 +131,11 @@ export const storeProducts = [
     date: '2026-03-18',
     tags: ['2026', 'silver'],
     visualTone: 'steel',
+    imageFiles: [],
   },
   {
     id: 'bone-chain',
-    name: 'Bone Chain',
+    title: 'Bone Chain',
     category: 'jewelry',
     price: 620,
     currency: 'USD',
@@ -82,10 +150,11 @@ export const storeProducts = [
     date: '2025-12-02',
     tags: ['2025', 'bone'],
     visualTone: 'bone',
+    imageFiles: [],
   },
   {
     id: 'skin-ear-piece',
-    name: 'Skin Ear Piece',
+    title: 'Skin Ear Piece',
     category: 'jewelry',
     price: 280,
     currency: 'USD',
@@ -100,10 +169,11 @@ export const storeProducts = [
     date: '2024-10-09',
     tags: ['2024', 'skin'],
     visualTone: 'skin',
+    imageFiles: [],
   },
   {
     id: 'skin-carrier',
-    name: 'Skin Carrier',
+    title: 'Skin Carrier',
     category: 'bags',
     price: 1180,
     currency: 'USD',
@@ -118,10 +188,11 @@ export const storeProducts = [
     date: '2026-03-03',
     tags: ['2026', 'skin'],
     visualTone: 'skin',
+    imageFiles: [],
   },
   {
     id: 'hardware-sling',
-    name: 'Hardware Sling',
+    title: 'Hardware Sling',
     category: 'bags',
     price: 980,
     currency: 'USD',
@@ -136,10 +207,11 @@ export const storeProducts = [
     date: '2025-09-14',
     tags: ['2025', 'black', 'silver'],
     visualTone: 'black-steel',
+    imageFiles: [],
   },
   {
     id: 'soft-case-object',
-    name: 'Soft Case Object',
+    title: 'Soft Case Object',
     category: 'bags',
     price: 640,
     currency: 'USD',
@@ -154,10 +226,11 @@ export const storeProducts = [
     date: '2024-04-21',
     tags: ['2024', 'black'],
     visualTone: 'void',
+    imageFiles: [],
   },
   {
     id: 'bone-vessel',
-    name: 'Bone Vessel',
+    title: 'Bone Vessel',
     category: 'home-decor',
     price: 820,
     currency: 'USD',
@@ -172,10 +245,11 @@ export const storeProducts = [
     date: '2026-01-19',
     tags: ['2026', 'bone'],
     visualTone: 'bone',
+    imageFiles: [],
   },
   {
     id: 'black-surface-study',
-    name: 'Black Surface Study',
+    title: 'Black Surface Study',
     category: 'home-decor',
     price: 540,
     currency: 'USD',
@@ -190,10 +264,11 @@ export const storeProducts = [
     date: '2025-06-12',
     tags: ['2025', 'black'],
     visualTone: 'ink',
+    imageFiles: [],
   },
   {
     id: 'silver-room-fragment',
-    name: 'Silver Room Fragment',
+    title: 'Silver Room Fragment',
     category: 'home-decor',
     price: 760,
     currency: 'USD',
@@ -208,10 +283,11 @@ export const storeProducts = [
     date: '2024-11-07',
     tags: ['2024', 'silver'],
     visualTone: 'steel',
+    imageFiles: [],
   },
   {
     id: 'skin-layer-top',
-    name: 'Skin Layer Top',
+    title: 'Skin Layer Top',
     category: 'clothes',
     price: 690,
     currency: 'USD',
@@ -226,10 +302,11 @@ export const storeProducts = [
     date: '2026-02-24',
     tags: ['2026', 'skin'],
     visualTone: 'skin',
+    imageFiles: [],
   },
   {
     id: 'black-wrap-coat',
-    name: 'Black Wrap Coat',
+    title: 'Black Wrap Coat',
     category: 'clothes',
     price: 1420,
     currency: 'USD',
@@ -244,10 +321,11 @@ export const storeProducts = [
     date: '2025-07-30',
     tags: ['2025', 'black'],
     visualTone: 'ink',
+    imageFiles: [],
   },
   {
     id: 'bone-garment-study',
-    name: 'Bone Garment Study',
+    title: 'Bone Garment Study',
     category: 'clothes',
     price: 880,
     currency: 'USD',
@@ -262,14 +340,8 @@ export const storeProducts = [
     date: '2024-12-19',
     tags: ['2024', 'bone'],
     visualTone: 'bone',
+    imageFiles: [],
   },
-].map((product) => ({
-  ...product,
-  paypalUrl: product.paypalUrl || defaultPayPalUrl,
-  checkoutOptions: {
-    sizes: ['One size'],
-    variations: ['As shown'],
-    ...(checkoutOptionsByCategory[product.category] || {}),
-    ...(product.checkoutOptions || {}),
-  },
-}));
+];
+
+export const storeProducts = rawStoreProducts.map(normalizeProduct);
