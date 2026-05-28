@@ -382,6 +382,7 @@ function EmptyStoreState() {
 }
 
 function formatPrice(price, currency = 'USD') {
+  if (typeof price === 'string') return price;
   if (!Number.isFinite(price)) return 'Price on request';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

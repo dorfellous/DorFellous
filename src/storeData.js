@@ -94,18 +94,20 @@ const createProductGallery = (product) => {
 
 const normalizeProduct = (product) => {
   const title = product.title || product.name;
+  const productOptions = product.options || {};
   const checkoutOptions = {
     sizes: ['One size'],
     variations: ['As shown'],
     ...(checkoutOptionsByCategory[product.category] || {}),
     ...(product.checkoutOptions || {}),
-    ...(product.options || {}),
+    ...(Array.isArray(productOptions) ? { sizes: productOptions } : productOptions),
   };
 
   return {
     ...product,
     title,
     name: title,
+    fullDescription: product.fullDescription || product.description,
     paypalUrl: product.paypalUrl || defaultPayPalUrl,
     checkoutOptions,
     imageGallery: createProductGallery({ ...product, title }),
@@ -114,6 +116,27 @@ const normalizeProduct = (product) => {
 };
 
 const rawStoreProducts = [
+  {
+    id: 'charcoal-ring-01',
+    category: 'jewelry',
+    title: 'Charcoal Ring',
+    price: '₪550',
+    available: true,
+    status: 'made-to-order',
+    shortDescription: 'Lightweight 3D printed ring with a realistic charcoal-like texture.',
+    description: 'A sculptural wearable ring inspired by raw charcoal formations. Lightweight despite its massive appearance, with detailed organic surface texture and a dark matte finish.',
+    materials: ['PLA', 'PETG'],
+    dimensions: 'Custom sizing',
+    options: ['All sizes available'],
+    imageFiles: ['01.jpg'],
+    paypalUrl: '',
+    notes: 'Made to order.',
+    featured: 1,
+    bestSelling: 1,
+    date: '2026-05-28',
+    tags: ['2026', 'made-to-order'],
+    visualTone: 'ink',
+  },
   {
     id: 'spine-ring',
     title: 'Spine Ring',
@@ -170,6 +193,32 @@ const rawStoreProducts = [
     tags: ['2024', 'skin'],
     visualTone: 'skin',
     imageFiles: [],
+  },
+  {
+    id: 'sea-mbiotic-bag-01',
+    category: 'bags',
+    title: 'Sea-mbiotic Bag',
+    price: '₪5,300',
+    available: true,
+    status: 'made-to-order',
+    shortDescription: 'Hand sculpted and digitally sculpted wearable bag combining organic 3D printed structures with soft body materials.',
+    description: 'A sculptural wearable object combining vegetable leather, 3D printed elements, and handcrafted construction techniques. The bag merges soft and rigid materials into a lightweight hybrid object inspired by marine organisms and symbiotic biological forms.',
+    materials: [
+      'Vegetable leather',
+      'PLA',
+      'PETG',
+      'Metal hardware',
+    ],
+    dimensions: 'Custom handmade dimensions',
+    options: ['Made to order'],
+    imageFiles: ['01.jpg'],
+    paypalUrl: '',
+    notes: 'Hand sewn. Lightweight construction.',
+    featured: 1,
+    bestSelling: 1,
+    date: '2026-05-28',
+    tags: ['2026', 'made-to-order'],
+    visualTone: 'steel',
   },
   {
     id: 'skin-carrier',
@@ -229,6 +278,27 @@ const rawStoreProducts = [
     imageFiles: [],
   },
   {
+    id: 'candle-holder-01',
+    category: 'home-decor',
+    title: 'Candle Holder',
+    price: '₪650',
+    available: true,
+    status: 'made-to-order',
+    shortDescription: 'A sculptural candle holder based on a digital animation created by Dor Fellous.',
+    description: 'A lightweight 3D printed candle holder translated from a digital animation into a physical sculptural object. Designed as a decorative home object with a dark, organic presence.',
+    materials: ['PLA', 'PETG'],
+    dimensions: '110 mm',
+    options: ['110 mm', '400 mm'],
+    imageFiles: ['01.jpg'],
+    paypalUrl: '',
+    notes: 'Made to order.',
+    featured: 1,
+    bestSelling: 1,
+    date: '2026-05-28',
+    tags: ['2026', 'made-to-order'],
+    visualTone: 'void',
+  },
+  {
     id: 'bone-vessel',
     title: 'Bone Vessel',
     category: 'home-decor',
@@ -273,6 +343,7 @@ const rawStoreProducts = [
     price: 760,
     currency: 'USD',
     available: false,
+    status: 'sold-out',
     status: 'sold-out',
     shortDescription: 'A silver-toned interior fragment with reflective tension.',
     fullDescription: 'A room-scale study in miniature, made as an object that shifts between decor, artifact, and material sample.',
