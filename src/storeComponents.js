@@ -1,3 +1,5 @@
+import { storeProducts } from './storeData.js';
+
 const storeSortOptions = [
   { value: 'featured', label: 'Featured' },
   { value: 'best-selling', label: 'Best selling' },
@@ -19,6 +21,7 @@ export function StoreLanding({ categories }) {
       <div class="store-category-grid" aria-label="Store categories">
         ${categories.map(StoreCategoryTile).join('')}
       </div>
+      ${StoreLandingFeaturedProducts()}
     </section>
   `;
 }
@@ -301,6 +304,27 @@ function StoreCategoryTile(category) {
         <small>${escapeHtml(category.deck)}</small>
       </span>
     </a>
+  `;
+}
+
+function StoreLandingFeaturedProducts() {
+  const featuredProducts = storeProducts
+    .filter((product) => product.available)
+    .sort((a, b) => (a.featured || 999) - (b.featured || 999))
+    .slice(0, 4);
+
+  if (!featuredProducts.length) return '';
+
+  return `
+    <section class="store-landing-products" aria-labelledby="store-featured-title">
+      <div class="store-minor-heading">
+        <p class="section-count">Direct checkout</p>
+        <h3 id="store-featured-title">Available Objects</h3>
+      </div>
+      <div class="store-product-grid">
+        ${featuredProducts.map(ProductCard).join('')}
+      </div>
+    </section>
   `;
 }
 
