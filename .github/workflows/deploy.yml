@@ -40,6 +40,9 @@ jobs:
             rm -f src/contentRenderer.js src/controls.js src/editor.js src/navigation.js src/scene.js src/scrollVideo.js src/sections.js
           fi
 
+      - name: Apply approved navigation update
+        run: node scripts/apply-navigation-update.mjs
+
       - name: Commit extracted site files
         run: |
           git config user.name "github-actions[bot]"
