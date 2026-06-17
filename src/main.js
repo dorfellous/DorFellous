@@ -11,6 +11,7 @@ const heroVideoSrc = getHeroVideoSrc();
 const contentBackgroundVideoSrc = getContentBackgroundVideoSrc();
 // Replace this file to change the exact PDF shown in the Portfolio category.
 const portfolioPdfSrc = getPortfolioPdfSrc();
+const aboutProfileImageSrc = getAboutProfileImageSrc();
 const mainCategories = [
   { id: 'home', label: 'Home' },
   { id: 'about', label: 'About' },
@@ -858,6 +859,9 @@ function renderAboutCategory() {
         <h2 id="about-title">${escapeHtml(about.title)}</h2>
       </header>
       ${renderBlocks(aboutBlocks)}
+      <figure class="about-profile-image reveal-item">
+        <img src="${aboutProfileImageSrc}" alt="Dor Fellous profile portrait" loading="lazy" decoding="async">
+      </figure>
     </section>
   `;
 }
@@ -1309,4 +1313,10 @@ function getPortfolioPdfSrc() {
   const encodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%202.pdf';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/pdf/${encodedPdfName}`;
   return `./public/assets/pdf/${encodedPdfName}`;
+}
+
+function getAboutProfileImageSrc() {
+  const encodedImageName = 'website%20profile%20image%20.JPG';
+  if (import.meta.env?.BASE_URL) return `${basePath}assets/profile/${encodedImageName}`;
+  return `./${encodedImageName}`;
 }

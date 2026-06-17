@@ -375,6 +375,19 @@ img {
   margin: 0 auto;
 }
 
+.about-profile-image {
+  width: min(100%, 680px);
+  margin: clamp(34px, 6vw, 72px) auto 0;
+}
+
+.about-profile-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(76vh, 860px);
+  object-fit: contain;
+}
+
 .category-content--portfolio {
   display: grid;
   gap: clamp(42px, 7vw, 86px);
