@@ -105,10 +105,9 @@ const resumeSections = [
   }
 ];
 const socialLinks = [
-  { label: 'LinkedIn', href: 'https://example.com/linkedin' },
-  { label: 'Instagram', href: 'https://example.com/instagram' },
-  { label: 'GitHub', href: 'https://example.com/github' },
-  { label: 'Email', href: 'mailto:hello@example.com' },
+  { label: 'Instagram', href: 'https://www.instagram.com/dorfellous/' },
+  { label: 'LinkedIn', href: 'https://il.linkedin.com/in/dor-fellous-397a761a8' },
+  { label: 'Email', href: 'mailto:DorFellous5@gmail.com' },
 ];
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
