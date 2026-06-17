@@ -18,7 +18,7 @@ const mainCategories = [
   { id: 'portfolio', label: 'Portfolio' },
   { id: 'cv', label: 'CV' },
   { id: 'links', label: 'Links' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'press', label: 'Press' },
 ];
 const resumeSections = [
   {
@@ -109,6 +109,18 @@ const socialLinks = [
   { label: 'Instagram', href: 'https://www.instagram.com/dorfellous/' },
   { label: 'LinkedIn', href: 'https://il.linkedin.com/in/dor-fellous-397a761a8' },
   { label: 'Email', href: 'mailto:DorFellous5@gmail.com' },
+];
+const pressLinks = [
+  { label: 'Time Out', href: 'https://timeout.co.il/%D7%94%D7%90%D7%A0%D7%A9%D7%99%D7%9D-%D7%A9%D7%A2%D7%95%D7%A9%D7%99%D7%9D-%D7%93%D7%95%D7%A8-%D7%A4%D7%9C%D7%95%D7%A1/' },
+  { label: 'XNET', href: 'https://xnet.ynet.co.il/articles/0,7340,L-5790218,00.html' },
+  { label: 'FAB UK Magazine', href: 'https://fabukmagazine.com/international-digital-fashion-week-idfw-fall-winter-2021/' },
+  { label: 'Fashion Week Online', href: 'https://fashionweekonline.com/fwo-x-mikeysline-x-flying-solo-competition-winners' },
+  { label: 'WOOOOOF', href: 'https://www.wooooof.com/product/dor-hat?image=3' },
+  { label: 'INN7', href: 'https://inn7fashion.co.il/collections/dor-fellous?srsltid=AfmBOopUHgp-IhloFUVkBeDU9tu1etbLUNR7D5BoSyqhVSSsaZ1orWbZ' },
+  { label: 'Arca', href: 'https://www.instagram.com/p/C2H-ar_NSUr/?igsh=ajAydWRucGczOGE4' },
+  { label: 'Static', href: 'https://www.instagram.com/p/CpPUB-Yj4fq/?igsh=c3Z0aXh1ZnpidHF3' },
+  { label: 'Ellesse', href: 'https://www.instagram.com/p/CftjuENIIbi/?igsh=MWxud2p5cXBxbWcxMg==' },
+  { label: 'Podcast', href: 'https://www.youtube.com/watch?v=OMh9pprW-3Y' },
 ];
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
@@ -814,7 +826,7 @@ function renderMainCategoryContent(category, route = {}) {
   if (category === 'portfolio') return renderPortfolioCategory();
   if (category === 'cv') return renderCvCategory();
   if (category === 'links') return renderLinksCategory();
-  if (category === 'contact') return renderContactCategory();
+  if (category === 'press') return renderPressCategory();
   return '';
 }
 
@@ -919,15 +931,19 @@ function renderLinksCategory() {
   `;
 }
 
-function renderContactCategory() {
+function renderPressCategory() {
   return `
-    <section class="category-content category-content--contact reveal-item" aria-labelledby="contact-title">
+    <section class="category-content category-content--press reveal-item" aria-labelledby="press-title">
       <header class="category-content-header">
         <p class="section-count">05</p>
-        <h2 id="contact-title">Contact</h2>
+        <h2 id="press-title">Press</h2>
       </header>
-      <div class="contact-panel reveal-item">
-        <a href="mailto:hello@example.com">hello@example.com</a>
+      <div class="links-grid press-grid">
+        ${pressLinks.map((link) => `
+          <a class="social-card press-card reveal-item" href="${escapeHtml(link.href)}" target="_blank" rel="noreferrer">
+            <span>${escapeHtml(link.label)}</span>
+          </a>
+        `).join('')}
       </div>
     </section>
   `;
