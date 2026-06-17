@@ -12,10 +12,53 @@ const contentBackgroundVideoSrc = getContentBackgroundVideoSrc();
 // Replace this file to change the exact PDF shown in the Portfolio category.
 const portfolioPdfSrc = getPortfolioPdfSrc();
 const mainCategories = [
+  { id: 'home', label: 'Home' },
   { id: 'about', label: 'About' },
   { id: 'portfolio', label: 'Portfolio' },
-  { id: 'press', label: 'Press' },
-  { id: 'store', label: 'Store' },
+  { id: 'cv', label: 'CV' },
+  { id: 'links', label: 'Links' },
+  { id: 'contact', label: 'Contact' },
+];
+const resumeSections = [
+  {
+    title: 'About',
+    items: [
+      'Tel Aviv based multidisciplinary designer and artist working between fashion, sculpture, digital tools, and material experimentation.',
+      'The practice moves between garments, wearable objects, image making, animation, and sculptural systems for the body.',
+    ],
+  },
+  {
+    title: 'Experience',
+    items: [
+      'Independent creative practice developing experimental garments, accessories, body extensions, and visual systems.',
+      'Continuous self-directed production across nightlife, daily wear, digital fashion, 3D modeling, and material research.',
+    ],
+  },
+  {
+    title: 'Education',
+    items: [
+      'External Studies Department, Shenkar College: sewing course and free pattern making course.',
+      'Self-directed study across digital patternmaking, 3D workflows, animation, fabrication, and AI image processes.',
+    ],
+  },
+  {
+    title: 'Skills',
+    items: [
+      'Fashion design, pattern making, sewing, textile manipulation, material research, sculptural construction, concept development, styling, visual direction.',
+    ],
+  },
+  {
+    title: 'Software',
+    items: [
+      'CLO3D, 3D modeling tools, animation workflows, augmented reality, 3D printing workflows, AI image and concept generation tools.',
+    ],
+  },
+];
+const socialLinks = [
+  { label: 'LinkedIn', href: 'https://example.com/linkedin' },
+  { label: 'Instagram', href: 'https://example.com/instagram' },
+  { label: 'GitHub', href: 'https://example.com/github' },
+  { label: 'Email', href: 'mailto:hello@example.com' },
 ];
 const cleanPdfTitles = {
   'early-material': 'Early Emotional / Material Work',
@@ -430,22 +473,16 @@ function getRoute() {
   const hash = window.location.hash.replace(/^#\/?/, '');
   const [path, queryString = ''] = hash.split('?');
   const params = Object.fromEntries(new URLSearchParams(queryString));
-  if (path === 'store') return { type: 'category', id: 'store', storeView: 'landing', params };
+  if (path === 'store') return { type: 'home' };
   if (path.startsWith('store/')) {
-    const [categoryId, productId] = path.replace('store/', '').split('/');
-    if (storeCategories.some((category) => category.id === categoryId)) {
-      if (productId) {
-        return { type: 'category', id: 'store', storeView: 'product', collectionId: categoryId, productId, params };
-      }
-      return { type: 'category', id: 'store', storeView: 'collection', collectionId: categoryId, params };
-    }
-    return { type: 'category', id: 'store', storeView: 'landing', params };
+    return { type: 'home' };
   }
   if (!hash) return { type: 'home' };
+  if (path === 'home') return { type: 'home' };
   if (mainCategories.some((category) => category.id === path)) {
     return { type: 'category', id: path, params };
   }
-  if (path === 'shop') return { type: 'shop', storeView: 'landing', params };
+  if (path === 'shop') return { type: 'home' };
   if (path.startsWith('section/')) return { type: 'section', id: path.replace('section/', '') };
   return { type: 'home' };
 }
@@ -480,9 +517,9 @@ function renderHome(activeCategory = null, route = {}) {
         </div>
         <div class="content-video-foreground home-hero">
           <nav class="main-category-menu reveal-item" aria-label="Main categories">
-            ${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}
+            ${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory || 'home')).join('')}
           </nav>
-          ${activeCategory ? renderMainCategoryContent(activeCategory, route) : ''}
+          ${activeCategory && activeCategory !== 'home' ? renderMainCategoryContent(activeCategory, route) : ''}
         </div>
       </section>
     </main>
@@ -716,16 +753,18 @@ function bindMainCategoryButtons() {
     button.addEventListener('click', async () => {
       const category = button.dataset.category;
       await fractureText(button);
-      window.location.hash = `#/${category}`;
+      window.location.hash = category === 'home' ? '#/' : `#/${category}`;
     });
   });
 }
 
 function renderMainCategoryContent(category, route = {}) {
+  if (category === 'home') return '';
   if (category === 'about') return renderAboutCategory();
   if (category === 'portfolio') return renderPortfolioCategory();
-  if (category === 'press') return renderEmptyCategory('Press', 'Press coming soon');
-  if (category === 'store') return renderStoreCategory(route);
+  if (category === 'cv') return renderCvCategory();
+  if (category === 'links') return renderLinksCategory();
+  if (category === 'contact') return renderContactCategory();
   return '';
 }
 
@@ -785,6 +824,58 @@ function renderPortfolioCategory() {
       <p class="portfolio-pdf-fallback">
         <a href="${portfolioPdfSrc}" target="_blank" rel="noreferrer">Open Full Portfolio PDF</a>
       </p>
+    </section>
+  `;
+}
+
+
+function renderCvCategory() {
+  return `
+    <section class="category-content category-content--cv reveal-item" aria-labelledby="cv-title">
+      <header class="category-content-header">
+        <p class="section-count">03</p>
+        <h2 id="cv-title">CV</h2>
+      </header>
+      <div class="cv-grid">
+        ${resumeSections.map((section) => `
+          <article class="cv-entry reveal-item">
+            <h3>${escapeHtml(section.title)}</h3>
+            ${section.items.map((item) => `<p>${escapeHtml(item)}</p>`).join('')}
+          </article>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderLinksCategory() {
+  return `
+    <section class="category-content category-content--links reveal-item" aria-labelledby="links-title">
+      <header class="category-content-header">
+        <p class="section-count">04</p>
+        <h2 id="links-title">Links</h2>
+      </header>
+      <div class="links-grid">
+        ${socialLinks.map((link) => `
+          <a class="social-card reveal-item" href="${escapeHtml(link.href)}" target="_blank" rel="noreferrer">
+            <span>${escapeHtml(link.label)}</span>
+          </a>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
+function renderContactCategory() {
+  return `
+    <section class="category-content category-content--contact reveal-item" aria-labelledby="contact-title">
+      <header class="category-content-header">
+        <p class="section-count">05</p>
+        <h2 id="contact-title">Contact</h2>
+      </header>
+      <div class="contact-panel reveal-item">
+        <a href="mailto:hello@example.com">hello@example.com</a>
+      </div>
     </section>
   `;
 }
@@ -1051,7 +1142,7 @@ function siteHeader() {
       <a href="#/" class="home-link">Dor Fellous</a>
       <nav aria-label="Category navigation">
         ${mainCategories.map((category) => `
-          <a href="#/${category.id}" ${activeSectionId === category.id ? 'aria-current="page"' : ''}>${escapeHtml(category.label)}</a>
+          <a href="${category.id === 'home' ? '#/' : `#/${category.id}`}" ${activeSectionId === category.id ? 'aria-current="page"' : ''}>${escapeHtml(category.label)}</a>
         `).join('')}
       </nav>
     </header>
@@ -1125,7 +1216,7 @@ function sectionPager(prev, next) {
   return `
     <nav class="section-pager" aria-label="Adjacent categories">
       ${prev ? `<a href="#/section/${prev.id}">Previous<br><span>${escapeHtml(prev.title)}</span></a>` : '<span></span>'}
-      ${next ? `<a href="#/section/${next.id}">Next<br><span>${escapeHtml(next.title)}</span></a>` : '<a href="#/shop">Next<br><span>Shop</span></a>'}
+      ${next ? `<a href="#/section/${next.id}">Next<br><span>${escapeHtml(next.title)}</span></a>` : '<span></span>'}
     </nav>
   `;
 }
