@@ -80,15 +80,16 @@ const resumeSections = [
   {
     "title": "Software",
     "items": [
-      "Blender; Cinema 4D; ZBrush; Meshmixer; CLO3D; Adobe Photoshop; Microsoft Office Suite; Shopify; Magento."
+      "Blender; Cinema 4D; ZBrush; Meshmixer; CLO3D; Adobe Photoshop; Microsoft Office Suite; Shopify; Magento; Nomad Sculpt; Cura; Runway; Codex; Gemini."
     ]
   },
   {
     "title": "Education",
     "items": [
-      "Shenkar College",
-      "Sewing Course; Free Pattern Making Course.",
-      "Additional education developed independently through self-directed learning, experimentation, and professional practice."
+      "Autodidact",
+      "Primarily self-taught across fashion design, garment construction, digital design, 3D workflows, content creation, AI tools, and creative direction through independent research, experimentation, and professional practice.",
+      "2016 – Sewing Course",
+      "Short sewing course through the External Studies Department, Shenkar College. This was not a degree program, and I did not study for a degree at Shenkar."
     ]
   },
   {
