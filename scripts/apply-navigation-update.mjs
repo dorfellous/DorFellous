@@ -6,7 +6,7 @@ const stylePath = 'src/style.css';
 let main = fs.readFileSync(mainPath, 'utf8');
 let style = fs.readFileSync(stylePath, 'utf8');
 
-const dataBlock = `const mainCategories = [
+const resumeAndLinks = `const mainCategories = [
   { id: 'home', label: 'Home' },
   { id: 'about', label: 'About' },
   { id: 'portfolio', label: 'Portfolio' },
@@ -57,19 +57,48 @@ const socialLinks = [
 ];
 const cleanPdfTitles`;
 
-main = main.replace(/const mainCategories = \[[\s\S]*?\];\n(?:const resumeSections = \[[\s\S]*?\];\nconst socialLinks = \[[\s\S]*?\];\n)?const cleanPdfTitles/, dataBlock);
+main = main.replace(
+  /const mainCategories = \[[\s\S]*?\];\n(?:const resumeSections = \[[\s\S]*?\];\nconst socialLinks = \[[\s\S]*?\];\n)?const cleanPdfTitles/,
+  resumeAndLinks,
+);
 
-main = main.replace(/  if \(path === 'store'\)[\s\S]*?  if \(!hash\) return \{ type: 'home' \};/, `  if (path === 'store') return { type: 'home' };
+main = main.replace(
+  /  if \(path === 'store'\) return \{ type: 'category', id: 'store', storeView: 'landing', params \};\n  if \(path\.startsWith\('store\/'\)\) \{[\s\S]*?  \}\n  if \(!hash\) return \{ type: 'home' \};/,
+  `  if (path === 'store') return { type: 'home' };
   if (path.startsWith('store/')) {
     return { type: 'home' };
   }
-  if (!hash) return { type: 'home' };`);
-main = main.replace("  if (!hash) return { type: 'home' };\n  if (mainCategories.some((category) => category.id === path))", "  if (!hash) return { type: 'home' };\n  if (path === 'home') return { type: 'home' };\n  if (mainCategories.some((category) => category.id === path))");
-main = main.replace("  if (path === 'shop') return { type: 'shop', storeView: 'landing', params };", "  if (path === 'shop') return { type: 'home' };");
-main = main.replace("${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}", "${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory || 'home')).join('')}");
-main = main.replace("${activeCategory ? renderMainCategoryContent(activeCategory, route) : ''}", "${activeCategory && activeCategory !== 'home' ? renderMainCategoryContent(activeCategory, route) : ''}");
-main = main.replace("window.location.hash = `#/${category}`;", "window.location.hash = category === 'home' ? '#/' : `#/${category}`;");
-main = main.replace(/function renderMainCategoryContent\(category, route = \{\}\) \{[\s\S]*?\n\}/, `function renderMainCategoryContent(category, route = {}) {
+  if (!hash) return { type: 'home' };`,
+);
+
+main = main.replace(
+  "  if (!hash) return { type: 'home' };\n  if (mainCategories.some((category) => category.id === path))",
+  "  if (!hash) return { type: 'home' };\n  if (path === 'home') return { type: 'home' };\n  if (mainCategories.some((category) => category.id === path))",
+);
+
+main = main.replace(
+  "  if (path === 'shop') return { type: 'shop', storeView: 'landing', params };",
+  "  if (path === 'shop') return { type: 'home' };",
+);
+
+main = main.replace(
+  "${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory)).join('')}",
+  "${mainCategories.map((category, index) => mainCategoryButton(category, index, activeCategory || 'home')).join('')}",
+);
+
+main = main.replace(
+  "${activeCategory ? renderMainCategoryContent(activeCategory, route) : ''}",
+  "${activeCategory && activeCategory !== 'home' ? renderMainCategoryContent(activeCategory, route) : ''}",
+);
+
+main = main.replace(
+  "window.location.hash = `#/${category}`;",
+  "window.location.hash = category === 'home' ? '#/' : `#/${category}`;",
+);
+
+main = main.replace(
+  /function renderMainCategoryContent\(category, route = \{\}\) \{[\s\S]*?\n\}/,
+  `function renderMainCategoryContent(category, route = {}) {
   if (category === 'home') return '';
   if (category === 'about') return renderAboutCategory();
   if (category === 'portfolio') return renderPortfolioCategory();
@@ -77,47 +106,49 @@ main = main.replace(/function renderMainCategoryContent\(category, route = \{\}\
   if (category === 'links') return renderLinksCategory();
   if (category === 'contact') return renderContactCategory();
   return '';
-}`);
+}`,
+);
 
-const newRenderers = `function renderCvCategory() {
-  return ` + '`' + `
+const renderers = `
+function renderCvCategory() {
+  return \`
     <section class="category-content category-content--cv reveal-item" aria-labelledby="cv-title">
       <header class="category-content-header">
         <p class="section-count">03</p>
         <h2 id="cv-title">CV</h2>
       </header>
       <div class="cv-grid">
-        ${resumeSections.map((section) => ` + '`' + `
+        \${resumeSections.map((section) => \`
           <article class="cv-entry reveal-item">
-            <h3>${escapeHtml(section.title)}</h3>
-            ${section.items.map((item) => ` + '`' + `<p>${escapeHtml(item)}</p>` + '`' + `).join('')}
+            <h3>\${escapeHtml(section.title)}</h3>
+            \${section.items.map((item) => \`<p>\${escapeHtml(item)}</p>\`).join('')}
           </article>
-        ` + '`' + `).join('')}
+        \`).join('')}
       </div>
     </section>
-  ` + '`' + `;
+  \`;
 }
 
 function renderLinksCategory() {
-  return ` + '`' + `
+  return \`
     <section class="category-content category-content--links reveal-item" aria-labelledby="links-title">
       <header class="category-content-header">
         <p class="section-count">04</p>
         <h2 id="links-title">Links</h2>
       </header>
       <div class="links-grid">
-        ${socialLinks.map((link) => ` + '`' + `
-          <a class="social-card reveal-item" href="${escapeHtml(link.href)}" target="_blank" rel="noreferrer">
-            <span>${escapeHtml(link.label)}</span>
+        \${socialLinks.map((link) => \`
+          <a class="social-card reveal-item" href="\${escapeHtml(link.href)}" target="_blank" rel="noreferrer">
+            <span>\${escapeHtml(link.label)}</span>
           </a>
-        ` + '`' + `).join('')}
+        \`).join('')}
       </div>
     </section>
-  ` + '`' + `;
+  \`;
 }
 
 function renderContactCategory() {
-  return ` + '`' + `
+  return \`
     <section class="category-content category-content--contact reveal-item" aria-labelledby="contact-title">
       <header class="category-content-header">
         <p class="section-count">05</p>
@@ -127,24 +158,36 @@ function renderContactCategory() {
         <a href="mailto:hello@example.com">hello@example.com</a>
       </div>
     </section>
-  ` + '`' + `;
+  \`;
 }
 
 `;
 
-if (main.includes('function renderCvCategory()')) {
-  main = main.replace(/function renderCvCategory\(\) \{[\s\S]*?\n\}\n\nasync function initPortfolioPdfViewer\(\)/, `${newRenderers}async function initPortfolioPdfViewer()`);
-} else {
-  main = main.replace('async function initPortfolioPdfViewer()', `${newRenderers}async function initPortfolioPdfViewer()`);
+if (!main.includes('function renderCvCategory()')) {
+  main = main.replace('async function initPortfolioPdfViewer()', `${renderers}async function initPortfolioPdfViewer()`);
 }
 
-main = main.replace('href="#/${category.id}"', 'href="${category.id === \'home\' ? \'#/\' : `#/${category.id}`}"');
-main = main.replace("${next ? `<a href=\"#/section/${next.id}\">Next<br><span>${escapeHtml(next.title)}</span></a>` : '<a href=\"#/shop\">Next<br><span>Shop</span></a>'}", "${next ? `<a href=\"#/section/${next.id}\">Next<br><span>${escapeHtml(next.title)}</span></a>` : '<span></span>'}");
+main = main.replace(
+  'href="#/${category.id}"',
+  "href=\"${category.id === 'home' ? '#/' : `#/${category.id}`}\"",
+);
 
-style = style.replace(/(\.main-category-menu \{[\s\S]*?grid-template-columns: )repeat\(4, minmax\(0, 1fr\)\);/, '$1repeat(6, minmax(0, 1fr));');
+main = main.replace(
+  "${next ? `<a href=\"#/section/${next.id}\">Next<br><span>${escapeHtml(next.title)}</span></a>` : '<a href=\"#/shop\">Next<br><span>Shop</span></a>'}",
+  "${next ? `<a href=\"#/section/${next.id}\">Next<br><span>${escapeHtml(next.title)}</span></a>` : '<span></span>'}",
+);
 
-const extraCss = `
+style = style.replace(
+  /(\.main-category-menu \{[\s\S]*?grid-template-columns: )repeat\(4, minmax\(0, 1fr\)\);/,
+  '$1repeat(6, minmax(0, 1fr));',
+);
 
+style = style.replace(
+  /(\.site-header nav \{\n  display: flex;\n)(  gap: 18px;\n)/,
+  '$1  flex-wrap: wrap;\n$2  justify-content: flex-end;\n',
+);
+
+const sectionStyles = String.raw`
 .category-content--cv,
 .category-content--links,
 .category-content--contact {
@@ -230,34 +273,75 @@ const extraCss = `
   overflow-wrap: anywhere;
 }
 
+`;
+
+if (!style.includes('.category-content--cv')) {
+  style = style.replace('.store-shell {', `${sectionStyles}.store-shell {`);
+}
+
+style = style.replace(
+  /(\.home-link:focus-visible,\n\.site-header a:focus-visible,\n\.section-pager a:focus-visible \{[\s\S]*?\n\})/,
+  `$1
+
 .social-card:focus-visible,
 .contact-panel a:focus-visible {
   outline: 1px solid var(--soft);
   outline-offset: 6px;
-}
+}`,
+);
 
-@media (max-width: 860px) {
-  .cv-entry,
-  .links-grid {
-    grid-template-columns: 1fr;
+style = style.replace(
+  /(\.section-pager,\n)(  \.store-heading,)/,
+  '$1  .cv-entry,\n$2',
+);
+
+style = style.replace(
+  /(\.store-category-grid,\n  \.store-filter-bar)( \{)/,
+  '$1,\n  .links-grid$2',
+);
+
+style = style.replace(
+  /(\.site-header \{\n)(    margin-right: -18px;)/,
+  '$1    align-items: flex-start;\n$2',
+);
+
+style = style.replace(
+  /(\.site-header \{\n    align-items: flex-start;[\s\S]*?padding-left: 18px;\n  \})/,
+  `$1
+
+  .site-header nav {
+    gap: 10px 14px;
+    font-size: 0.82rem;
   }
 
   .cv-entry p {
     grid-column: 1;
-  }
-}
+  }`,
+);
 
-@media (max-width: 520px) {
+style = style.replace(
+  /(@media \(max-width: 520px\) \{\n)(  \.scroll-hero-brand \{)/,
+  `$1  .site-header {
+    display: grid;
+    gap: 14px;
+  }
+
+  .site-header nav {
+    justify-content: flex-start;
+  }
+
+$2`,
+);
+
+style = style.replace(
+  /(\.image-row \{\n    grid-template-columns: 1fr;\n  \})/,
+  `$1
+
   .social-card {
     min-height: 112px;
-  }
-}
-`;
-
-style = style.replace(/\n\.category-content--cv,[\s\S]*?\n\.store-shell \{/, '\n.store-shell {');
-style = style.replace(/\n\.social-card:focus-visible,[\s\S]*?\.contact-panel a:focus-visible \{[\s\S]*?\n\}/, '');
-style = style.trimEnd() + extraCss;
+  }`,
+);
 
 fs.writeFileSync(mainPath, main);
 fs.writeFileSync(stylePath, style);
-console.log('Navigation/CV/Links update applied.');
+console.log('Approved navigation, CV, links, and Store-hiding update applied.');
