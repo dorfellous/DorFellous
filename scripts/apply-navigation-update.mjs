@@ -29,9 +29,9 @@ if (!main.includes('const aboutProfileImageSrc = getAboutProfileImageSrc();')) {
 if (!main.includes('class="about-profile-image reveal-item"')) {
   main = main.replace(
     '      ${renderBlocks(aboutBlocks)}\n    </section>',
-    `      ${renderBlocks(aboutBlocks)}
+    `      \${renderBlocks(aboutBlocks)}
       <figure class="about-profile-image reveal-item">
-        <img src="${aboutProfileImageSrc}" alt="Dor Fellous profile portrait" loading="lazy" decoding="async">
+        <img src="\${aboutProfileImageSrc}" alt="Dor Fellous profile portrait" loading="lazy" decoding="async">
       </figure>
     </section>`,
   );
@@ -42,8 +42,8 @@ if (!main.includes('function getAboutProfileImageSrc()')) {
 
 function getAboutProfileImageSrc() {
   const encodedImageName = 'website%20profile%20image%20.JPG';
-  if (import.meta.env?.BASE_URL) return `${basePath}assets/profile/${encodedImageName}`;
-  return `./${encodedImageName}`;
+  if (import.meta.env?.BASE_URL) return ` + '`${basePath}assets/profile/${encodedImageName}`' + `;
+  return ` + '`./${encodedImageName}`' + `;
 }
 `;
 }
