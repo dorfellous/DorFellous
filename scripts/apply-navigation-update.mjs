@@ -42,10 +42,15 @@ if (!main.includes('function getAboutProfileImageSrc()')) {
 
 function getAboutProfileImageSrc() {
   const encodedImageName = 'website%20profile%20image%20.JPG';
-  if (import.meta.env?.BASE_URL) return ` + '`${basePath}assets/profile/${encodedImageName}`' + `;
+  if (import.meta.env?.BASE_URL) return ` + '`${basePath}${encodedImageName}`' + `;
   return ` + '`./${encodedImageName}`' + `;
 }
 `;
+} else {
+  main = main.replace(
+    'return `${basePath}assets/profile/${encodedImageName}`;',
+    'return `${basePath}${encodedImageName}`;',
+  );
 }
 
 if (!style.includes('.about-profile-image')) {
@@ -78,7 +83,7 @@ if (!style.includes('.about-profile-image')) {
 
 index = index.replace(
   /\.\/src\/main\.js(?:\?v=[^"']*)?/,
-  './src/main.js?v=about-profile-20260617',
+  './src/main.js?v=about-profile-root-20260617',
 );
 
 fs.writeFileSync(mainPath, main);
