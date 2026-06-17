@@ -1317,6 +1317,6 @@ function getPortfolioPdfSrc() {
 
 function getAboutProfileImageSrc() {
   const encodedImageName = 'website%20profile%20image%20.JPG';
-  if (import.meta.env?.BASE_URL) return `${basePath}assets/profile/${encodedImageName}`;
+  if (import.meta.env?.BASE_URL) return `${basePath}${encodedImageName}`;
   return `./${encodedImageName}`;
 }
