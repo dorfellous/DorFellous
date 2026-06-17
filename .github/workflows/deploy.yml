@@ -71,6 +71,11 @@ jobs:
           mkdir -p public/assets/pdf
           cp "ready Dor fellous Creative protfolio 2026  2.pdf" "public/assets/pdf/ready Dor fellous Creative protfolio 2026 2.pdf"
 
+      - name: Prepare profile image
+        run: |
+          mkdir -p public/assets/profile
+          cp "website profile image .JPG" "public/assets/profile/website profile image .JPG"
+
       - name: Install dependencies
         run: npm install
 
