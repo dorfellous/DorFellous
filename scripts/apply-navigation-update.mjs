@@ -31,6 +31,33 @@ main = main.replace(
   linksSource,
 );
 
+const softwareSection = `  {
+    "title": "Software",
+    "items": [
+      "Blender; Cinema 4D; ZBrush; Meshmixer; CLO3D; Adobe Photoshop; Microsoft Office Suite; Shopify; Magento; Nomad Sculpt; Cura; Runway; Codex; Gemini."
+    ]
+  }`;
+
+main = main.replace(
+  /  \{\n    "title": "Software",\n    "items": \[\n[\s\S]*?\n    \]\n  \}/,
+  softwareSection,
+);
+
+const educationSection = `  {
+    "title": "Education",
+    "items": [
+      "Autodidact",
+      "Primarily self-taught across fashion design, garment construction, digital design, 3D workflows, content creation, AI tools, and creative direction through independent research, experimentation, and professional practice.",
+      "2016 – Sewing Course",
+      "Short sewing course through the External Studies Department, Shenkar College. This was not a degree program, and I did not study for a degree at Shenkar."
+    ]
+  }`;
+
+main = main.replace(
+  /  \{\n    "title": "Education",\n    "items": \[\n[\s\S]*?\n    \]\n  \}/,
+  educationSection,
+);
+
 main = main.replace(
   /\{ id: 'contact', label: 'Contact' \}/g,
   "{ id: 'press', label: 'Press' }",
@@ -135,10 +162,10 @@ if (!style.includes('.about-profile-image')) {
 
 index = index.replace(
   /\.\/src\/main\.js(?:\?v=[^"']*)?/,
-  './src/main.js?v=press-20260617',
+  './src/main.js?v=cv-education-software-20260617',
 );
 
 fs.writeFileSync(mainPath, main);
 fs.writeFileSync(stylePath, style);
 fs.writeFileSync(indexPath, index);
-console.log('Approved Links, About profile image, and Press updates applied.');
+console.log('Approved Links, About profile image, Press, and CV updates applied.');
