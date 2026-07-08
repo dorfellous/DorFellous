@@ -16,9 +16,27 @@ const mainCategories = [
   { id: 'home', label: 'Home' },
   { id: 'about', label: 'About' },
   { id: 'portfolio', label: 'Portfolio' },
+  { id: 'workflows', label: 'Workflows' },
   { id: 'cv', label: 'CV' },
   { id: 'links', label: 'Links' },
   { id: 'press', label: 'Press' },
+];
+const workflowEntries = [
+  {
+    title: 'Face Piece Workflow',
+    image: 'workflows/workflow-facepiece.PNG',
+    description: 'From a personal image and visual identity reference, the process moves through AI-generated look development, isolated product design, 3D modeling, physical prototyping, and final styling on the body. This workflow shows how an abstract character direction can become a wearable sculptural face piece.',
+  },
+  {
+    title: 'Client Headpiece Workflow',
+    image: 'workflows/workflow-client-headpiece.PNG',
+    description: 'A client concept is developed through sketches, AI-generated visual exploration, 3D modeling, printing, finishing, and final wearable presentation. The project combines fashion styling, sculptural accessories, and digital-to-physical production into one complete headpiece system.',
+  },
+  {
+    title: 'Candle Holder Workflow',
+    image: 'workflows/workflow-candleholder.PNG',
+    description: 'This workflow begins with a conceptual video image and evolves into a product image, 3D model, full concept visualization, 3D print, hand painting, and final object. It shows how a surreal visual idea can be translated into a functional sculptural product through layered digital and manual processes.',
+  },
 ];
 const resumeSections = [
   {
@@ -825,6 +843,7 @@ function renderMainCategoryContent(category, route = {}) {
   if (category === 'home') return '';
   if (category === 'about') return renderAboutCategory();
   if (category === 'portfolio') return renderPortfolioCategory();
+  if (category === 'workflows') return renderWorkflowsCategory();
   if (category === 'cv') return renderCvCategory();
   if (category === 'links') return renderLinksCategory();
   if (category === 'press') return renderPressCategory();
@@ -894,12 +913,39 @@ function renderPortfolioCategory() {
   `;
 }
 
+function renderWorkflowsCategory() {
+  return `
+    <section class="category-content category-content--workflows reveal-item" aria-labelledby="workflows-title">
+      <header class="category-content-header workflows-header">
+        <p class="section-count">03</p>
+        <h2 id="workflows-title">Workflows</h2>
+        <p>A visual archive of how ideas move between AI, 3D modeling, printing, hand-finishing, styling, and material experimentation.</p>
+        <p>Each process begins with an unconventional idea and develops through different techniques until it becomes a finished physical object.</p>
+      </header>
+      <div class="workflow-archive">
+        ${workflowEntries.map((entry, index) => `
+          <article class="workflow-entry reveal-item">
+            <figure class="workflow-board">
+              <img src="${basePath}${escapeHtml(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+            </figure>
+            <div class="workflow-copy">
+              <p class="section-count">${String(index + 1).padStart(2, '0')}</p>
+              <h3>${escapeHtml(entry.title)}</h3>
+              <p>${escapeHtml(entry.description)}</p>
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
 
 function renderCvCategory() {
   return `
     <section class="category-content category-content--cv reveal-item" aria-labelledby="cv-title">
       <header class="category-content-header">
-        <p class="section-count">03</p>
+        <p class="section-count">04</p>
         <h2 id="cv-title">CV</h2>
       </header>
       <div class="cv-grid">
@@ -918,7 +964,7 @@ function renderLinksCategory() {
   return `
     <section class="category-content category-content--links reveal-item" aria-labelledby="links-title">
       <header class="category-content-header">
-        <p class="section-count">04</p>
+        <p class="section-count">05</p>
         <h2 id="links-title">Links</h2>
       </header>
       <div class="links-grid">
@@ -936,7 +982,7 @@ function renderPressCategory() {
   return `
     <section class="category-content category-content--press reveal-item" aria-labelledby="press-title">
       <header class="category-content-header">
-        <p class="section-count">05</p>
+        <p class="section-count">06</p>
         <h2 id="press-title">Press</h2>
       </header>
       <div class="links-grid press-grid">
