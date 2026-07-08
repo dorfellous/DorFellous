@@ -262,9 +262,9 @@ img {
 
 .main-category-menu {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(118px, 100%), 1fr));
-  gap: clamp(10px, 2vw, 22px);
-  width: min(100%, 980px);
+  grid-template-columns: repeat(auto-fit, minmax(min(148px, 100%), 1fr));
+  gap: clamp(14px, 2.4vw, 30px);
+  width: min(100%, 1180px);
   margin: clamp(24px, 8vh, 84px) auto 0;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
@@ -274,7 +274,7 @@ img {
   position: relative;
   min-height: 96px;
   border: 0;
-  padding: 24px 0;
+  padding: 24px clamp(12px, 1.8vw, 24px);
   color: var(--ink);
   background: transparent;
   text-align: center;
@@ -290,9 +290,10 @@ img {
 
 .main-category-link span {
   display: block;
-  font-size: clamp(1.16rem, 2.45vw, 2.85rem);
+  font-size: clamp(1rem, 2.05vw, 2.45rem);
   line-height: 0.94;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .main-category-link::after {
@@ -548,10 +549,15 @@ img {
   text-decoration: none;
 }
 
+.site-header nav a {
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
 .site-header nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 10px clamp(18px, 2.6vw, 34px);
   justify-content: flex-end;
 }
 
@@ -1594,6 +1600,7 @@ img {
   .section-body,
   .section-pager,
   .cv-entry,
+  .workflow-entry,
   .workflow-entry,
   .workflow-entry,
   .store-heading,

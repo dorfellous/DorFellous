@@ -1,7 +1,4 @@
 import { fractureText, initScrollReveals, resetScrollReveals } from './animations.js';
-import { StoreLanding, CollectionGrid, ProductDetailPage } from './storeComponents.js';
-import { storeCategories, storeProducts } from './storeData.js';
-import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
 
 const app = document.querySelector('#app');
 const basePath = getBasePath();
@@ -25,16 +22,22 @@ const workflowEntries = [
   {
     title: 'Face Piece Workflow',
     image: 'workflows/workflow-facepiece.PNG',
+    width: 1830,
+    height: 512,
     description: 'From a personal image and visual identity reference, the process moves through AI-generated look development, isolated product design, 3D modeling, physical prototyping, and final styling on the body. This workflow shows how an abstract character direction can become a wearable sculptural face piece.',
   },
   {
     title: 'Client Headpiece Workflow',
     image: 'workflows/workflow-client-headpiece.PNG',
+    width: 2172,
+    height: 724,
     description: 'A client concept is developed through sketches, AI-generated visual exploration, 3D modeling, printing, finishing, and final wearable presentation. The project combines fashion styling, sculptural accessories, and digital-to-physical production into one complete headpiece system.',
   },
   {
     title: 'Candle Holder Workflow',
     image: 'workflows/workflow-candleholder.PNG',
+    width: 1672,
+    height: 941,
     description: 'This workflow begins with a conceptual video image and evolves into a product image, 3D model, full concept visualization, 3D print, hand painting, and final object. It shows how a surreal visual idea can be translated into a functional sculptural product through layered digital and manual processes.',
   },
 ];
@@ -157,6 +160,7 @@ const contentBoundaryFixes = {
     replacement: 'Digital Fashion Digital fashion',
   },
 };
+const pdfModuleSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';
 const pdfWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';
 const pdfSupportPath = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
 const maxPdfSliceHeight = 1400;
@@ -165,8 +169,7 @@ const scrubEndSafetySeconds = 0.06;
 const heroRequiredBufferRatio = 0.95;
 const backgroundRequiredBufferRatio = 0.16;
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
-
+let pdfjsLibPromise = null;
 let portfolio = null;
 let activeSectionId = null;
 let destroyScrollHero = null;
@@ -247,29 +250,17 @@ async function waitForInitialAssets(loader) {
   const requiredAssets = Promise.allSettled([
     waitForVideoBuffer(document.querySelector('.scroll-hero-video'), {
       label: 'Opening hero video',
-      targetBufferRatio: heroRequiredBufferRatio,
-      timeoutMs: 45000,
+      targetBufferRatio: 0.58,
+      timeoutMs: 24000,
       progressBase: 0.24,
-      progressSpan: 0.5,
+      progressSpan: 0.62,
       loader,
       seekProbe: true,
-    }).then(() => loader.setProgress(0.74)),
-    waitForVideoBuffer(document.querySelector('.content-background-video'), {
-      label: 'Content background video',
-      targetBufferRatio: backgroundRequiredBufferRatio,
-      timeoutMs: 18000,
-      progressBase: 0.74,
-      progressSpan: 0.1,
-      loader,
-    }).then(() => loader.setProgress(0.84)),
-    withTimeout(
-      waitForPortfolioDocument(),
-      4500,
-      'Portfolio PDF preload timed out; pages will render progressively.',
-    ).then(() => loader.setProgress(0.9)),
+    }).then(() => loader.setProgress(0.86)),
   ]);
 
-  await withTimeout(requiredAssets, 52000, 'Initial visual assets took too long to preload.');
+  await withTimeout(requiredAssets, 26000, 'Initial visual assets took too long to preload.');
+  loader.setProgress(0.9);
 }
 
 function waitForVideoBuffer(video, options = {}) {
@@ -447,8 +438,19 @@ function seekVideoTo(video, time, timeoutMs) {
   });
 }
 
+async function loadPdfjs() {
+  if (!pdfjsLibPromise) {
+    pdfjsLibPromise = import(pdfModuleSrc).then((module) => {
+      module.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
+      return module;
+    });
+  }
+  return pdfjsLibPromise;
+}
+
 async function waitForPortfolioDocument() {
   try {
+    const pdfjsLib = await loadPdfjs();
     const pdf = await pdfjsLib.getDocument({
       url: portfolioPdfSrc,
       cMapUrl: `${pdfSupportPath}cmaps/`,
@@ -592,7 +594,7 @@ function renderHome(activeCategory = null, route = {}) {
             src="${contentBackgroundVideoSrc}"
             muted
             playsinline
-            preload="auto"
+            preload="metadata"
           ></video>
           <div class="content-background-scrim"></div>
         </div>
@@ -606,7 +608,7 @@ function renderHome(activeCategory = null, route = {}) {
     </main>
   `;
   destroyScrollHero = initScrollVideoHero();
-  destroyContentBackgroundVideo = initContentBackgroundVideo();
+  destroyContentBackgroundVideo = initDeferredContentBackgroundVideo();
   bindMainCategoryButtons();
   bindStoreControls(route);
 }
@@ -691,6 +693,37 @@ function initScrollVideoHero() {
     video.removeEventListener('canplay', onMetadata);
     window.removeEventListener('scroll', requestUpdate);
     window.removeEventListener('resize', requestUpdate);
+  };
+}
+
+function initDeferredContentBackgroundVideo() {
+  const region = document.querySelector('[data-content-video-region]');
+  if (!region) return null;
+
+  let cleanup = null;
+  let observer = null;
+  let timeoutId = 0;
+  const start = () => {
+    if (cleanup) return;
+    observer?.disconnect();
+    observer = null;
+    window.clearTimeout(timeoutId);
+    cleanup = initContentBackgroundVideo();
+  };
+
+  if ('IntersectionObserver' in window) {
+    observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) start();
+    }, { rootMargin: '1200px 0px' });
+    observer.observe(region);
+  } else {
+    timeoutId = window.setTimeout(start, 1400);
+  }
+
+  return () => {
+    observer?.disconnect();
+    window.clearTimeout(timeoutId);
+    cleanup?.();
   };
 }
 
@@ -926,7 +959,7 @@ function renderWorkflowsCategory() {
         ${workflowEntries.map((entry, index) => `
           <article class="workflow-entry reveal-item">
             <figure class="workflow-board">
-              <img src="${getWorkflowImageSrc(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+              <img src="${getWorkflowImageSrc(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" width="${entry.width}" height="${entry.height}" sizes="(max-width: 860px) calc(100vw - 36px), min(68vw, 802px)">
             </figure>
             <div class="workflow-copy">
               <p class="section-count">${String(index + 1).padStart(2, '0')}</p>
@@ -1005,6 +1038,7 @@ async function initPortfolioPdfViewer() {
   container.innerHTML = '<p class="portfolio-pdf-loading">Loading portfolio...</p>';
 
   try {
+    const pdfjsLib = await loadPdfjs();
     const pdf = await pdfjsLib.getDocument({
       url: portfolioPdfSrc,
       cMapUrl: `${pdfSupportPath}cmaps/`,
