@@ -110,6 +110,11 @@ if (!main.includes("if (category === 'workflows') return renderWorkflowsCategory
   );
 }
 
+main = main.replaceAll(
+  'src="${basePath}${escapeHtml(entry.image)}"',
+  'src="${getWorkflowImageSrc(entry.image)}"',
+);
+
 const pressRenderer = `function renderPressCategory() {
   return ` + '`' + `
     <section class="category-content category-content--press reveal-item" aria-labelledby="press-title">
@@ -141,7 +146,7 @@ const workflowsRenderer = `function renderWorkflowsCategory() {
         \${workflowEntries.map((entry, index) => ` + '`' + `
           <article class="workflow-entry reveal-item">
             <figure class="workflow-board">
-              <img src="\${basePath}\${escapeHtml(entry.image)}" alt="\${escapeHtml(entry.title)} board" loading="\${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+              <img src="\${getWorkflowImageSrc(entry.image)}" alt="\${escapeHtml(entry.title)} board" loading="\${index === 0 ? 'eager' : 'lazy'}" decoding="async">
             </figure>
             <div class="workflow-copy">
               <p class="section-count">\${String(index + 1).padStart(2, '0')}</p>
@@ -210,6 +215,11 @@ if (!main.includes('class="about-profile-image reveal-item"')) {
 if (!main.includes('function getAboutProfileImageSrc()')) {
   main = `${main.trimEnd()}
 
+function getWorkflowImageSrc(imagePath) {
+  if (import.meta.env?.BASE_URL) return ` + '`${basePath}${imagePath}`' + `;
+  return ` + '`./${imagePath}`' + `;
+}
+
 function getAboutProfileImageSrc() {
   const encodedImageName = 'website%20profile%20image%20.JPG';
   if (import.meta.env?.BASE_URL) return ` + '`${basePath}${encodedImageName}`' + `;
@@ -217,6 +227,16 @@ function getAboutProfileImageSrc() {
 }
 `;
 } else {
+  if (!main.includes('function getWorkflowImageSrc(')) {
+    main = main.replace(
+      '\nfunction getAboutProfileImageSrc() {',
+      `\nfunction getWorkflowImageSrc(imagePath) {
+  if (import.meta.env?.BASE_URL) return \`\${basePath}\${imagePath}\`;
+  return \`./\${imagePath}\`;
+}
+\nfunction getAboutProfileImageSrc() {`,
+    );
+  }
   main = main.replace(
     'return `${basePath}assets/profile/${encodedImageName}`;',
     'return `${basePath}${encodedImageName}`;',
