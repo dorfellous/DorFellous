@@ -35,16 +35,22 @@ const workflowsSource = `const workflowEntries = [
   {
     title: 'Face Piece Workflow',
     image: 'workflows/workflow-facepiece.PNG',
+    width: 1830,
+    height: 512,
     description: 'From a personal image and visual identity reference, the process moves through AI-generated look development, isolated product design, 3D modeling, physical prototyping, and final styling on the body. This workflow shows how an abstract character direction can become a wearable sculptural face piece.',
   },
   {
     title: 'Client Headpiece Workflow',
     image: 'workflows/workflow-client-headpiece.PNG',
+    width: 2172,
+    height: 724,
     description: 'A client concept is developed through sketches, AI-generated visual exploration, 3D modeling, printing, finishing, and final wearable presentation. The project combines fashion styling, sculptural accessories, and digital-to-physical production into one complete headpiece system.',
   },
   {
     title: 'Candle Holder Workflow',
     image: 'workflows/workflow-candleholder.PNG',
+    width: 1672,
+    height: 941,
     description: 'This workflow begins with a conceptual video image and evolves into a product image, 3D model, full concept visualization, 3D print, hand painting, and final object. It shows how a surreal visual idea can be translated into a functional sculptural product through layered digital and manual processes.',
   },
 ];
@@ -115,6 +121,11 @@ main = main.replaceAll(
   'src="${getWorkflowImageSrc(entry.image)}"',
 );
 
+main = main.replaceAll(
+  '<img src="${getWorkflowImageSrc(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? \'eager\' : \'lazy\'}" decoding="async">',
+  '<img src="${getWorkflowImageSrc(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? \'eager\' : \'lazy\'}" decoding="async" width="${entry.width}" height="${entry.height}" sizes="(max-width: 860px) calc(100vw - 36px), min(68vw, 802px)">',
+);
+
 const pressRenderer = `function renderPressCategory() {
   return ` + '`' + `
     <section class="category-content category-content--press reveal-item" aria-labelledby="press-title">
@@ -146,7 +157,7 @@ const workflowsRenderer = `function renderWorkflowsCategory() {
         \${workflowEntries.map((entry, index) => ` + '`' + `
           <article class="workflow-entry reveal-item">
             <figure class="workflow-board">
-              <img src="\${getWorkflowImageSrc(entry.image)}" alt="\${escapeHtml(entry.title)} board" loading="\${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+              <img src="\${getWorkflowImageSrc(entry.image)}" alt="\${escapeHtml(entry.title)} board" loading="\${index === 0 ? 'eager' : 'lazy'}" decoding="async" width="\${entry.width}" height="\${entry.height}" sizes="(max-width: 860px) calc(100vw - 36px), min(68vw, 802px)">
             </figure>
             <div class="workflow-copy">
               <p class="section-count">\${String(index + 1).padStart(2, '0')}</p>
@@ -395,10 +406,156 @@ if (!style.includes('  .workflow-copy {\n    position: static;\n  }')) {
   );
 }
 
+main = main
+  .replace("import { StoreLanding, CollectionGrid, ProductDetailPage } from './storeComponents.js';\n", '')
+  .replace("import { storeCategories, storeProducts } from './storeData.js';\n", '')
+  .replace("import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';\n", '');
+
+if (!main.includes('const pdfModuleSrc = ')) {
+  main = main.replace(
+    "const pdfWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';",
+    "const pdfModuleSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.mjs';\nconst pdfWorkerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.mjs';",
+  );
+}
+
+main = main.replace("pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;\n\n", '');
+
+if (!main.includes('let pdfjsLibPromise = null;')) {
+  main = main.replace('let portfolio = null;', 'let pdfjsLibPromise = null;\nlet portfolio = null;');
+}
+
+if (!main.includes('async function loadPdfjs()')) {
+  main = main.replace(
+    '\nasync function waitForPortfolioDocument() {',
+    `\nasync function loadPdfjs() {
+  if (!pdfjsLibPromise) {
+    pdfjsLibPromise = import(pdfModuleSrc).then((module) => {
+      module.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
+      return module;
+    });
+  }
+  return pdfjsLibPromise;
+}
+
+async function waitForPortfolioDocument() {`,
+  );
+}
+
+main = main.replaceAll(
+  'const pdf = await pdfjsLib.getDocument({',
+  'const pdfjsLib = await loadPdfjs();\n    const pdf = await pdfjsLib.getDocument({',
+);
+
+main = main.replace(
+  "    addPreloadHint(contentBackgroundVideoSrc, 'video');\n",
+  '',
+);
+
+main = main.replace(
+  /async function waitForInitialAssets\(loader\) \{[\s\S]*?\n\}\n\nfunction waitForVideoBuffer/,
+  `async function waitForInitialAssets(loader) {
+  const requiredAssets = Promise.allSettled([
+    waitForVideoBuffer(document.querySelector('.scroll-hero-video'), {
+      label: 'Opening hero video',
+      targetBufferRatio: 0.58,
+      timeoutMs: 24000,
+      progressBase: 0.24,
+      progressSpan: 0.62,
+      loader,
+      seekProbe: true,
+    }).then(() => loader.setProgress(0.86)),
+  ]);
+
+  await withTimeout(requiredAssets, 26000, 'Initial visual assets took too long to preload.');
+  loader.setProgress(0.9);
+}
+
+function waitForVideoBuffer`,
+);
+
+main = main.replace(
+  '            preload="auto"\n          ></video>\n          <div class="content-background-scrim"></div>',
+  '            preload="metadata"\n          ></video>\n          <div class="content-background-scrim"></div>',
+);
+
+main = main.replace(
+  '  destroyContentBackgroundVideo = initContentBackgroundVideo();',
+  '  destroyContentBackgroundVideo = initDeferredContentBackgroundVideo();',
+);
+
+if (!main.includes('function initDeferredContentBackgroundVideo()')) {
+  main = main.replace(
+    '\nfunction initContentBackgroundVideo() {',
+    `\nfunction initDeferredContentBackgroundVideo() {
+  const region = document.querySelector('[data-content-video-region]');
+  if (!region) return null;
+
+  let cleanup = null;
+  let observer = null;
+  let timeoutId = 0;
+  const start = () => {
+    if (cleanup) return;
+    observer?.disconnect();
+    observer = null;
+    window.clearTimeout(timeoutId);
+    cleanup = initContentBackgroundVideo();
+  };
+
+  if ('IntersectionObserver' in window) {
+    observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) start();
+    }, { rootMargin: '1200px 0px' });
+    observer.observe(region);
+  } else {
+    timeoutId = window.setTimeout(start, 1400);
+  }
+
+  return () => {
+    observer?.disconnect();
+    window.clearTimeout(timeoutId);
+    cleanup?.();
+  };
+}
+
+function initContentBackgroundVideo() {`,
+  );
+}
+
+style = style
+  .replace('grid-template-columns: repeat(auto-fit, minmax(min(118px, 100%), 1fr));', 'grid-template-columns: repeat(auto-fit, minmax(min(148px, 100%), 1fr));')
+  .replace('gap: clamp(10px, 2vw, 22px);', 'gap: clamp(14px, 2.4vw, 30px);')
+  .replace('width: min(100%, 980px);\n  margin: clamp(24px, 8vh, 84px) auto 0;\n  border-top: 1px solid var(--rule);', 'width: min(100%, 1180px);\n  margin: clamp(24px, 8vh, 84px) auto 0;\n  border-top: 1px solid var(--rule);')
+  .replace('padding: 24px 0;\n  color: var(--ink);', 'padding: 24px clamp(12px, 1.8vw, 24px);\n  color: var(--ink);')
+  .replace('font-size: clamp(1.16rem, 2.45vw, 2.85rem);', 'font-size: clamp(1rem, 2.05vw, 2.45rem);')
+  .replace('  letter-spacing: 0;\n}\n\n.main-category-link::after', '  letter-spacing: 0;\n  white-space: nowrap;\n}\n\n.main-category-link::after')
+  .replace('gap: 18px;\n  justify-content: flex-end;', 'gap: 10px clamp(18px, 2.6vw, 34px);\n  justify-content: flex-end;');
+
+if (!style.includes('.site-header nav a {')) {
+  style = style.replace(
+    `.site-header a {
+  text-decoration: none;
+}
+
+.site-header nav {`,
+    `.site-header a {
+  text-decoration: none;
+}
+
+.site-header nav a {
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.site-header nav {`,
+  );
+}
+
 index = index.replace(
   /\.\/src\/main\.js(?:\?v=[^"']*)?/,
-  './src/main.js?v=workflows-section-20260708',
+  './src/main.js?v=perf-nav-20260708',
 );
+
+index = index.replace(/\n    <script type="module" src="\.\/src\/checkout\.js"><\/script>/, '');
 
 fs.writeFileSync(mainPath, main);
 fs.writeFileSync(stylePath, style);
