@@ -1595,6 +1595,7 @@ img {
   .section-pager,
   .cv-entry,
   .workflow-entry,
+  .workflow-entry,
   .store-heading,
   .store-minor-heading {
     grid-template-columns: 1fr;

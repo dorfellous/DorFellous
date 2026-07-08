@@ -926,7 +926,7 @@ function renderWorkflowsCategory() {
         ${workflowEntries.map((entry, index) => `
           <article class="workflow-entry reveal-item">
             <figure class="workflow-board">
-              <img src="${basePath}${escapeHtml(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+              <img src="${getWorkflowImageSrc(entry.image)}" alt="${escapeHtml(entry.title)} board" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
             </figure>
             <div class="workflow-copy">
               <p class="section-count">${String(index + 1).padStart(2, '0')}</p>
@@ -1376,6 +1376,11 @@ function getPortfolioPdfSrc() {
   const encodedPdfName = 'ready%20Dor%20fellous%20Creative%20protfolio%202026%202.pdf';
   if (import.meta.env?.BASE_URL) return `${basePath}assets/pdf/${encodedPdfName}`;
   return `./public/assets/pdf/${encodedPdfName}`;
+}
+
+function getWorkflowImageSrc(imagePath) {
+  if (import.meta.env?.BASE_URL) return `${basePath}${imagePath}`;
+  return `./${imagePath}`;
 }
 
 function getAboutProfileImageSrc() {
